@@ -1,0 +1,25 @@
+export enum AccountType {
+  COMMISSION = 'COMMISSION',
+  SETTLEMENT = 'SETTLEMENT',
+  CURRENT = 'CURRENT',
+  SAVINGS = 'SAVINGS',
+}
+
+export enum FeeType {
+  BENEFICIARY_CHARGE = 'BENEFICIARY_CHARGE',
+  OUR_CHARGE = 'OUR_CHARGE',
+  SHARED = 'SHARED',
+}
+
+export enum TransferStatus {
+  PENDING = 'PENDING',
+  VALIDATED = 'VALIDATED',
+  REJECTED = 'REJECTED',
+  INFO_REQUESTED = 'INFO_REQUESTED',
+  COMPLETED = 'COMPLETED',
+}
+
+export enum TransferType {
+  COMMERCIAL = 'COMMERCIAL',
+  CURRENT = 'CURRENT',
+}

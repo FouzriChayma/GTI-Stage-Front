@@ -1,0 +1,6 @@
+export enum AccountType {
+  COMMISSION = 'COMMISSION',
+  SETTLEMENT = 'SETTLEMENT',
+  CURRENT = 'CURRENT',
+  SAVINGS = 'SAVINGS'
+}
