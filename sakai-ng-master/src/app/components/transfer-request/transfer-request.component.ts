@@ -21,6 +21,7 @@ import { TransferRequestService } from '../../services/transfer-request.service'
 import { TransferRequest } from '../../models/transfer-request';
 import { Beneficiary } from '../../models/beneficiary';
 import { Document } from '../../models/document';
+import { Router } from '@angular/router';
 interface Column {
   field: string;
   header: string;
@@ -113,7 +114,8 @@ export class TransferRequestComponent implements OnInit {
   constructor(
     private transferRequestService: TransferRequestService,
     private messageService: MessageService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -164,46 +166,14 @@ export class TransferRequestComponent implements OnInit {
     return date > today;
   }
 
-  openNew() {
-    this.transferRequest = {
-      userId: 0,
-      commissionAccountNumber: '',
-      commissionAccountType: 'COMMISSION',
-      settlementAccountNumber: '',
-      settlementAccountType: 'SETTLEMENT',
-      transferType: 'CURRENT',
-      issueDate: new Date().toISOString().split('T')[0],
-      feeType: 'SHARED',
-      currency: 'TND',
-      amount: 0,
-      isNegotiation: false,
-      isTermNegotiation: false,
-      isFinancing: false,
-      beneficiary: {
-        name: '',
-        country: '',
-        destinationBank: '',
-        bankAccount: ''
-      },
-      status: 'PENDING',
-      documents: []
-    };
-    this.selectedFiles = [];
-    this.submitted = false;
-    this.transferRequestDialog = true;
-  }
+openNew() {
+  this.router.navigate(['/new-transfer-request']);
+}
 
-  editTransferRequest(transferRequest: TransferRequest) {
-    this.transferRequest = {
-      ...transferRequest,
-      issueDate: transferRequest.issueDate.split('T')[0],
-      invoiceDate: transferRequest.invoiceDate ? transferRequest.invoiceDate.split('T')[0] : undefined,
-      beneficiary: { ...transferRequest.beneficiary }
-    };
-    this.selectedFiles = [];
-    this.submitted = false;
-    this.transferRequestDialog = true;
-  }
+editTransferRequest(transferRequest: TransferRequest) {
+  console.log("Navigating to edit with ID:", transferRequest.idTransferRequest);
+  this.router.navigate([`edit-transfer-request/${transferRequest.idTransferRequest}`]);
+}
 
   hideDialog() {
     this.transferRequestDialog = false;

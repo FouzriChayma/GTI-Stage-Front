@@ -1,0 +1,411 @@
+// Professional Transfer Request Form Styles
+
+.transfer-request-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+// Header Styling
+.form-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  
+  .form-title {
+    font-size: 2.25rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    color: #1e293b;
+    
+    &::before {
+      content: "📋";
+      font-size: 1.75rem;
+      margin-right: 0.75rem;
+      display: inline-block;
+    }
+  }
+  
+  .form-subtitle {
+    font-size: 1rem;
+    color: #64748b;
+    margin: 0;
+    font-weight: 400;
+  }
+}
+
+// Form Sections
+.form-section {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+// Section-specific styling
+.account-section {
+  border-left: 4px solid #3b82f6;
+}
+
+.transfer-section {
+  border-left: 4px solid #10b981;
+}
+
+.beneficiary-section {
+  border-left: 4px solid #8b5cf6;
+}
+
+.documents-section {
+  border-left: 4px solid #f59e0b;
+}
+
+// Section Titles
+.section-title {
+  font-size: 1.375rem;
+  font-weight: 600;
+  margin: 0 0 1.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1e293b;
+  
+  &.account-info::before {
+    content: "🏦";
+    font-size: 1.25rem;
+  }
+  
+  &.transfer-details::before {
+    content: "💰";
+    font-size: 1.25rem;
+  }
+  
+  &.beneficiary-info::before {
+    content: "👤";
+    font-size: 1.25rem;
+  }
+  
+  &.documents::before {
+    content: "📎";
+    font-size: 1.25rem;
+  }
+  
+  &.commercial-info::before {
+    content: "💼";
+    font-size: 1rem;
+  }
+  
+  &.options-info::before {
+    content: "⚙️";
+    font-size: 1rem;
+  }
+}
+
+// Field Styling
+.field {
+  margin-bottom: 1.25rem;
+  
+  label {
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    display: block;
+    font-size: 0.875rem;
+    
+    &.required::after {
+      content: " *";
+      color: #dc2626;
+      font-weight: 600;
+    }
+  }
+}
+
+// Modern Input Styling
+.modern-input,
+::ng-deep .modern-input.p-inputtext {
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px !important;
+  padding: 0.75rem !important;
+  font-size: 0.875rem !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  background: #ffffff !important;
+  
+  &:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+    outline: none !important;
+  }
+  
+  &:hover {
+    border-color: #9ca3af !important;
+  }
+  
+  &::placeholder {
+    color: #9ca3af;
+  }
+}
+
+// Dropdown Styling
+::ng-deep .modern-dropdown.p-dropdown {
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  
+  &:hover {
+    border-color: #9ca3af !important;
+  }
+  
+  &.p-focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  }
+  
+  .p-dropdown-label {
+    padding: 0.75rem !important;
+    font-size: 0.875rem !important;
+  }
+}
+
+// Input Number Styling
+::ng-deep .modern-input-number.p-inputnumber {
+  .p-inputtext {
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    padding: 0.75rem !important;
+    font-size: 0.875rem !important;
+    
+    &:focus {
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+    }
+  }
+}
+
+// Commercial Fields
+.commercial-fields {
+  background: #fffbeb;
+  border: 1px solid #fed7aa;
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  
+  .section-title {
+    font-size: 1.125rem;
+    color: #92400e;
+    margin-bottom: 1rem;
+  }
+}
+
+// Options Section
+.options-section {
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  
+  .section-title {
+    font-size: 1.125rem;
+    color: #7c3aed;
+    margin-bottom: 1rem;
+  }
+}
+
+// Checkbox Styling
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  
+  &:hover {
+    background: #f8fafc;
+  }
+  
+  .checkbox-label {
+    font-weight: 400;
+    color: #374151;
+    margin: 0;
+    cursor: pointer;
+    font-size: 0.875rem;
+  }
+}
+
+::ng-deep .modern-checkbox.p-checkbox {
+  .p-checkbox-box {
+    border: 1px solid #d1d5db !important;
+    border-radius: 4px !important;
+    width: 1rem !important;
+    height: 1rem !important;
+    
+    &:hover {
+      border-color: #8b5cf6 !important;
+    }
+    
+    &.p-highlight {
+      background: #8b5cf6 !important;
+      border-color: #8b5cf6 !important;
+    }
+  }
+}
+
+// File Upload Styling
+::ng-deep .modern-file-upload.p-fileupload {
+  border: 2px dashed #d1d5db !important;
+  border-radius: 6px !important;
+  background: #f9fafb !important;
+  
+  &:hover {
+    border-color: #f59e0b !important;
+    background: #fffbeb !important;
+  }
+  
+  .p-fileupload-buttonbar {
+    background: transparent !important;
+    border: none !important;
+    padding: 1.5rem !important;
+    text-align: center;
+    
+    .p-button {
+      background: #f59e0b !important;
+      border: 1px solid #f59e0b !important;
+      border-radius: 6px !important;
+      padding: 0.75rem 1.5rem !important;
+      font-weight: 500 !important;
+      color: #ffffff !important;
+      
+      &:hover {
+        background: #d97706 !important;
+        border-color: #d97706 !important;
+      }
+    }
+  }
+}
+
+.file-info {
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  display: block;
+}
+
+// Error Messages
+.p-error {
+  color: #dc2626 !important;
+  font-size: 0.75rem !important;
+  margin-top: 0.25rem !important;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  
+  &::before {
+    content: "⚠️";
+    font-size: 0.625rem;
+  }
+}
+
+// Action Buttons
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+::ng-deep .cancel-btn.p-button {
+  border: 1px solid #d1d5db !important;
+  color: #6b7280 !important;
+  background: #ffffff !important;
+  border-radius: 6px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 500 !important;
+  
+  &:hover {
+    border-color: #9ca3af !important;
+    background: #f9fafb !important;
+    color: #374151 !important;
+  }
+}
+
+::ng-deep .submit-btn.p-button {
+  background: #3b82f6 !important;
+  border: 1px solid #3b82f6 !important;
+  border-radius: 6px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 500 !important;
+  color: #ffffff !important;
+  
+  &:hover {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Responsive Design
+@media (max-width: 1024px) {
+  .transfer-request-container {
+    padding: 1rem;
+  }
+  
+  .form-section {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-header .form-title {
+    font-size: 1.875rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    
+    ::ng-deep .p-button {
+      width: 100%;
+    }
+  }
+  
+  .section-title {
+    font-size: 1.125rem;
+  }
+}
+
+// Grid improvements
+::ng-deep .p-fluid .grid {
+  margin: 0;
+}
+
+::ng-deep .p-fluid .grid .field {
+  padding: 0 0.5rem;
+}
+
+// Toast positioning
+::ng-deep .p-toast {
+  z-index: 9999;
+}
+
+// Focus indicators for accessibility
+.modern-input:focus,
+::ng-deep .modern-dropdown:focus,
+::ng-deep .p-button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}

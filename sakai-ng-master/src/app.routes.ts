@@ -5,6 +5,8 @@ import { Documentation } from './app/pages/documentation/documentation';
 import { Landing } from './app/pages/landing/landing';
 import { Notfound } from './app/pages/notfound/notfound';
 import { TransferRequestComponent } from './app/components/transfer-request/transfer-request.component';
+import { NewTransferRequestComponent } from './app/components/new-transfer-request/new-transfer-request.component';
+import { EditTransferRequestComponent } from './app/components/edit-transfer-request/edit-transfer-request.component';
 
 export const appRoutes: Routes = [
     {
@@ -14,7 +16,8 @@ export const appRoutes: Routes = [
             { path: '', component: Dashboard },
             { path: 'uikit', loadChildren: () => import('./app/pages/uikit/uikit.routes') },
             { path: 'transfer-requests', component: TransferRequestComponent },
-            { path: 'documentation', component: Documentation },
+            { path: 'new-transfer-request', component: NewTransferRequestComponent },
+            { path: 'edit-transfer-request/:id', component: EditTransferRequestComponent },            { path: 'documentation', component: Documentation },
             { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
         ]
     },

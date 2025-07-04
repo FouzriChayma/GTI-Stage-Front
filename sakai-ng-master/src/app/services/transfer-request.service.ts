@@ -143,3 +143,4 @@ export class TransferRequestService {
     return this.http.get<Document[]>(`${this.apiUrl}/${transferRequestId}/documents`);
   }
 }
+
