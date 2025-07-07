@@ -382,10 +382,12 @@ export class EditTransferRequestComponent implements OnInit {
           fileName: file.name,
           fileType: file.type,
           filePath: "",
-          uploadDate: new Date().toISOString()
+          uploadDate: new Date().toISOString(),
+          fileExtension: file.name.split('.').pop() || '',
+          createElement: () => null // or provide a suitable mock implementation if needed
         };
         if (!this.transferRequest.documents) this.transferRequest.documents = [];
-        this.transferRequest.documents.push(tempDocument);
+        this.transferRequest.documents.push(tempDocument as any);
         this.cdr.detectChanges();
 
         this.showSuccess(`Document "${file.name}" uploaded successfully`);

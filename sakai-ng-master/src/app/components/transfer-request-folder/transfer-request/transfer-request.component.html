@@ -2,16 +2,37 @@
 
 <p-toolbar styleClass="mb-6">
   <ng-template pTemplate="start">
-    <p-button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
-    <p-button
-      severity="secondary"
-      label="Delete Selected"
-      icon="pi pi-trash"
-      outlined
-      (onClick)="deleteSelectedTransferRequests()"
-      [disabled]="!selectedTransferRequests || !selectedTransferRequests.length"
-    />
+    <div class="flex flex-wrap gap-2 align-items-center">
+      <p-button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
+      <p-button
+        severity="secondary"
+        label="Delete Selected"
+        icon="pi pi-trash"
+        outlined
+        (onClick)="deleteSelectedTransferRequests()"
+        [disabled]="!selectedTransferRequests || !selectedTransferRequests.length"
+      />
+    </div>
   </ng-template>
+
+  <ng-template pTemplate="center">
+    <div class="flex flex-wrap gap-2 align-items-center">
+      <span class="p-input-icon-left mr-2">
+        <input pInputText type="number" placeholder="User ID" [(ngModel)]="searchCriteria.userId" />
+      </span>
+      <span class="p-input-icon-left mr-2">
+        <input pInputText type="text" placeholder="Commission Account" [(ngModel)]="searchCriteria.commissionAccountNumber" />
+      </span>
+      <p-dropdown [options]="transferTypes" placeholder="Transfer Type" [(ngModel)]="searchCriteria.transferType" optionLabel="label" optionValue="value" [showClear]="true"></p-dropdown>
+      <p-dropdown [options]="statuses" placeholder="Status" [(ngModel)]="searchCriteria.status" optionLabel="label" optionValue="value" [showClear]="true"></p-dropdown>
+      <span class="p-input-icon-left mr-2">
+        <p-inputNumber placeholder="Amount" [(ngModel)]="searchCriteria.amount" mode="decimal" [min]="0" [maxFractionDigits]="3"></p-inputNumber>
+      </span>
+      <p-button label="Search" icon="pi pi-search" (onClick)="onSearch()" />
+      <p-button label="Clear" icon="pi pi-times" (onClick)="clearSearch()" />
+    </div>
+  </ng-template>
+
   <ng-template pTemplate="end">
     <p-button label="Export" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
   </ng-template>
@@ -30,7 +51,7 @@
   currentPageReportTemplate="Showing {first} to {last} of {totalRecords} transfer requests"
   [showCurrentPageReport]="true"
   [rowsPerPageOptions]="[10, 20, 30]"
-  styleClass="p-datatable-sm" 
+  styleClass="p-datatable-sm"
 >
   <ng-template pTemplate="caption">
     <div class="flex items-center justify-between">
@@ -100,33 +121,6 @@
             [outlined]="true"
             size="small"
             (click)="deleteTransferRequest(transferRequest)"
-          ></p-button>
-          <p-button
-            icon="pi pi-check"
-            severity="success"
-            [rounded]="true"
-            [outlined]="true"
-            size="small"
-            (click)="validateTransferRequest(transferRequest)"
-            [disabled]="transferRequest.status !== 'PENDING' && transferRequest.status !== 'INFO_REQUESTED'"
-          ></p-button>
-          <p-button
-            icon="pi pi-times"
-            severity="danger"
-            [rounded]="true"
-            [outlined]="true"
-            size="small"
-            (click)="rejectTransferRequest(transferRequest)"
-            [disabled]="transferRequest.status !== 'PENDING' && transferRequest.status !== 'INFO_REQUESTED'"
-          ></p-button>
-          <p-button
-            icon="pi pi-info-circle"
-            severity="secondary"
-            [rounded]="true"
-            [outlined]="true"
-            size="small"
-            (click)="requestAdditionalInfo(transferRequest)"
-            [disabled]="transferRequest.status !== 'PENDING'"
           ></p-button>
           <p-button
             icon="pi pi-eye"

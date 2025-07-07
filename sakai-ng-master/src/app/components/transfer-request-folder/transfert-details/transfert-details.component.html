@@ -46,7 +46,6 @@
 
   <!-- Main Content Grid -->
   <div class="content-grid">
-    
     <!-- Transfer Overview Card -->
     <div class="info-card overview-card">
       <div class="card-header">
@@ -224,16 +223,71 @@
         </div>
       </div>
     </div>
-
   </div>
 
-  <!-- Action Section -->
-  <div class="action-section">
-    <p-button
-      label="Back to List"
-      icon="pi pi-arrow-left"
-      (click)="goBack()"
-      class="p-button-outlined back-button"
-    ></p-button>
+
+
+  <!-- Enhanced Action Section -->
+<div class="action-section">
+  <div class="action-container">
+    <!-- Back Button - Left Side -->
+    <div class="back-action">
+      <p-button
+        label="Back to List"
+        icon="pi pi-arrow-left"
+        (click)="goBack()"
+        class="p-button-outlined back-button"
+        size="large"
+      ></p-button>
+    </div>
+    
+    <!-- Status Action Buttons - Right Side -->
+    <div class="status-actions" *ngIf="canPerformActions()">
+      <div class="action-buttons-group">
+        <p-button
+          label="Validate"
+          icon="pi pi-check"
+          (click)="validateTransferRequest()"
+          class="p-button-success validate-button"
+          [loading]="isLoading"
+          [disabled]="isLoading"
+          size="large"
+        ></p-button>
+        
+        
+        
+        <p-button
+          label="Reject"
+          icon="pi pi-times"
+          (click)="rejectTransferRequest()"
+          class="p-button-danger reject-button"
+          [loading]="isLoading"
+          [disabled]="isLoading"
+          size="large"
+        ></p-button>
+
+        <p-button
+          label="Request Info"
+          icon="pi pi-info-circle"
+          (click)="requestAdditionalInfo()"
+          class="p-button-warning info-button"
+          [loading]="isLoading"
+          [disabled]="isLoading"
+          size="large"
+        ></p-button>
+      </div>
+    </div>
+    
+    
   </div>
+  
+  <!-- Action Status Indicator -->
+  <div class="action-status" *ngIf="canPerformActions()">
+    <div class="status-indicator">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>This transfer request requires your attention</span>
+    </div>
+  </div>
+</div>
+
 </div>

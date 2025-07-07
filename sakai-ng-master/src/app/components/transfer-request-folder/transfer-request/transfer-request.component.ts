@@ -22,6 +22,7 @@ import { TransferRequest } from '../../../models/transfer-request';
 import { Beneficiary } from '../../../models/beneficiary';
 import { Document } from '../../../models/document';
 import { Router } from '@angular/router';
+
 interface Column {
   field: string;
   header: string;
@@ -32,7 +33,6 @@ interface ExportColumn {
   title: string;
   dataKey: string;
 }
-
 
 @Component({
   selector: 'app-transfer-request',
@@ -66,6 +66,15 @@ export class TransferRequestComponent implements OnInit {
   submitted: boolean = false;
   selectedFiles: File[] = [];
   isSaving: boolean = false;
+
+  // Search criteria
+  searchCriteria = {
+    userId: null as number | null,
+    commissionAccountNumber: '',
+    transferType: null as string | null,
+    status: null as string | null,
+    amount: null as number | null
+  };
 
   transferRequest: TransferRequest = {
     userId: 0,
@@ -106,6 +115,13 @@ export class TransferRequestComponent implements OnInit {
     { label: 'Commercial', value: 'COMMERCIAL' },
     { label: 'Current', value: 'CURRENT' }
   ];
+  statuses = [
+    { label: 'Pending', value: 'PENDING' },
+    { label: 'Validated', value: 'VALIDATED' },
+    { label: 'Rejected', value: 'REJECTED' },
+    { label: 'Info Requested', value: 'INFO_REQUESTED' },
+    { label: 'Completed', value: 'COMPLETED' }
+  ];
 
   @ViewChild('dt') dt!: Table;
   exportColumns!: ExportColumn[];
@@ -124,11 +140,17 @@ export class TransferRequestComponent implements OnInit {
   }
 
   loadTransferRequests() {
-    this.transferRequestService.getTransferRequests().subscribe({
-      next: (data) => this.transferRequests.set(data),
-      error: (err) => this.showError('Failed to load transfer requests', err)
-    });
-  }
+  this.transferRequestService.searchTransferRequests(
+    this.searchCriteria.userId === null ? undefined : this.searchCriteria.userId,
+    this.searchCriteria.commissionAccountNumber || undefined,
+    this.searchCriteria.transferType || undefined,
+    this.searchCriteria.status || undefined,
+    this.searchCriteria.amount === null ? undefined : this.searchCriteria.amount
+  ).subscribe({
+    next: (data) => this.transferRequests.set(data),
+    error: (err) => this.showError('Failed to load transfer requests', err)
+  });
+}
 
   initColumns() {
     this.cols = [
@@ -157,6 +179,21 @@ export class TransferRequestComponent implements OnInit {
     table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
   }
 
+  onSearch() {
+    this.loadTransferRequests();
+  }
+
+  clearSearch() {
+    this.searchCriteria = {
+      userId: null,
+      commissionAccountNumber: '',
+      transferType: null,
+      status: null,
+      amount: null
+    };
+    this.loadTransferRequests();
+  }
+
   isCurrencyValid(currency: string): boolean {
     return /^[A-Z]{3}$/.test(currency || '');
   }
@@ -166,14 +203,14 @@ export class TransferRequestComponent implements OnInit {
     return date > today;
   }
 
-openNew() {
-  this.router.navigate(['/new-transfer-request']);
-}
+  openNew() {
+    this.router.navigate(['/new-transfer-request']);
+  }
 
-editTransferRequest(transferRequest: TransferRequest) {
-  console.log("Navigating to edit with ID:", transferRequest.idTransferRequest);
-  this.router.navigate([`edit-transfer-request/${transferRequest.idTransferRequest}`]);
-}
+  editTransferRequest(transferRequest: TransferRequest) {
+    console.log("Navigating to edit with ID:", transferRequest.idTransferRequest);
+    this.router.navigate([`edit-transfer-request/${transferRequest.idTransferRequest}`]);
+  }
 
   hideDialog() {
     this.transferRequestDialog = false;
@@ -391,7 +428,6 @@ editTransferRequest(transferRequest: TransferRequest) {
     return true;
   }
 
-  
   private showSuccess(message: string) {
     this.messageService.add({
       severity: 'success',
@@ -428,7 +464,8 @@ editTransferRequest(transferRequest: TransferRequest) {
         return 'info';
     }
   }
+
   viewDetails(id: number) {
-  this.router.navigate([`/transfert-details/${id}`]);
-}
+    this.router.navigate([`/transfert-details/${id}`]);
+  }
 }

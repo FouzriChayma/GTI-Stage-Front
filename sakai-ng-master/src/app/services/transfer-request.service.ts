@@ -5,6 +5,7 @@ import { TransferRequest } from '../models/transfer-request';
 import { Beneficiary } from '../models/beneficiary';
 import { Document } from '../models/document';
 
+
 @Injectable({
   providedIn: 'root'
 })
@@ -15,6 +16,17 @@ export class TransferRequestService {
 
   getTransferRequests(): Observable<TransferRequest[]> {
     return this.http.get<TransferRequest[]>(this.apiUrl);
+  }
+
+  searchTransferRequests(userId?: number, commissionAccountNumber?: string, transferType?: string, status?: string, amount?: number): Observable<TransferRequest[]> {
+    let params: Record<string, any> = {};
+    if (userId) params['userId'] = userId;
+    if (commissionAccountNumber) params['commissionAccountNumber'] = commissionAccountNumber;
+    if (transferType) params['transferType'] = transferType;
+    if (status) params['status'] = status;
+    if (amount) params['amount'] = amount;
+
+    return this.http.get<TransferRequest[]>(`${this.apiUrl}/search`, { params });
   }
 
   getTransferRequest(id: number): Observable<TransferRequest> {
