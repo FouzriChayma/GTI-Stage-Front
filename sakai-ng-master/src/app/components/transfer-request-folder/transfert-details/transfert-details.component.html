@@ -1,0 +1,239 @@
+<div class="transfer-details-container">
+  <p-toast></p-toast>
+  
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-content">
+      <div class="transfer-badge">
+        <i class="pi pi-send"></i>
+        <span>Transfer Request</span>
+      </div>
+      <h1 class="hero-title">{{ transferRequest?.idTransferRequest }}</h1>
+      <div class="hero-meta">
+        <div class="meta-item">
+          <span class="meta-label">Amount</span>
+          <span class="meta-value">{{ transferRequest?.amount | currency: transferRequest?.currency }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Status</span>
+          <p-tag [value]="transferRequest?.status" [severity]="getSeverity(transferRequest?.status || '')"></p-tag>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Date</span>
+          <span class="meta-value">{{ transferRequest?.issueDate | date: 'mediumDate' }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="transfer-flow">
+        <div class="flow-step">
+          <div class="step-icon">💰</div>
+          <span>{{ transferRequest?.currency }}</span>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">🏦</div>
+          <span>{{ transferRequest?.beneficiary?.destinationBank }}</span>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">👤</div>
+          <span>{{ transferRequest?.beneficiary?.name }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="content-grid">
+    
+    <!-- Transfer Overview Card -->
+    <div class="info-card overview-card">
+      <div class="card-header">
+        <h3><i class="pi pi-info-circle"></i> Transfer Overview</h3>
+      </div>
+      <div class="card-content">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-icon">🆔</div>
+            <div class="info-details">
+              <span class="info-label">Transfer ID</span>
+              <span class="info-value">{{ transferRequest?.idTransferRequest }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">👤</div>
+            <div class="info-details">
+              <span class="info-label">User ID</span>
+              <span class="info-value">{{ transferRequest?.userId }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">🔄</div>
+            <div class="info-details">
+              <span class="info-label">Transfer Type</span>
+              <span class="info-value">{{ transferRequest?.transferType }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">💳</div>
+            <div class="info-details">
+              <span class="info-label">Fee Type</span>
+              <span class="info-value">{{ transferRequest?.feeType }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Details Card -->
+    <div class="info-card account-card">
+      <div class="card-header">
+        <h3><i class="pi pi-credit-card"></i> Account Details</h3>
+      </div>
+      <div class="card-content">
+        <div class="account-section">
+          <h4>Commission Account</h4>
+          <div class="account-info">
+            <span class="account-number">{{ transferRequest?.commissionAccountNumber }}</span>
+            <span class="account-type">{{ transferRequest?.commissionAccountType }}</span>
+          </div>
+        </div>
+        <div class="account-section">
+          <h4>Settlement Account</h4>
+          <div class="account-info">
+            <span class="account-number">{{ transferRequest?.settlementAccountNumber }}</span>
+            <span class="account-type">{{ transferRequest?.settlementAccountType }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beneficiary Card -->
+    <div class="info-card beneficiary-card">
+      <div class="card-header">
+        <h3><i class="pi pi-user"></i> Beneficiary Information</h3>
+      </div>
+      <div class="card-content">
+        <div class="beneficiary-profile">
+          <div class="profile-avatar">
+            <i class="pi pi-user"></i>
+          </div>
+          <div class="profile-details">
+            <h4>{{ transferRequest?.beneficiary?.name }}</h4>
+            <p class="profile-location">
+              <i class="pi pi-map-marker"></i>
+              {{ transferRequest?.beneficiary?.country }}
+            </p>
+            <p class="profile-bank">
+              <i class="pi pi-building"></i>
+              {{ transferRequest?.beneficiary?.destinationBank }}
+            </p>
+            <p class="profile-account" *ngIf="transferRequest?.beneficiary?.bankAccount">
+              <i class="pi pi-credit-card"></i>
+              {{ transferRequest?.beneficiary?.bankAccount }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transaction Details Card -->
+    <div class="info-card transaction-card">
+      <div class="card-header">
+        <h3><i class="pi pi-chart-line"></i> Transaction Details</h3>
+      </div>
+      <div class="card-content">
+        <div class="transaction-flags">
+          <div class="flag-item" [class.active]="transferRequest?.isNegotiation">
+            <i class="pi pi-comments"></i>
+            <span>Negotiation</span>
+            <div class="flag-status">{{ transferRequest?.isNegotiation ? 'Yes' : 'No' }}</div>
+          </div>
+          <div class="flag-item" [class.active]="transferRequest?.isTermNegotiation">
+            <i class="pi pi-calendar"></i>
+            <span>Term Negotiation</span>
+            <div class="flag-status">{{ transferRequest?.isTermNegotiation ? 'Yes' : 'No' }}</div>
+          </div>
+          <div class="flag-item" [class.active]="transferRequest?.isFinancing">
+            <i class="pi pi-dollar"></i>
+            <span>Financing</span>
+            <div class="flag-status">{{ transferRequest?.isFinancing ? 'Yes' : 'No' }}</div>
+          </div>
+        </div>
+        
+        <div class="transaction-reason" *ngIf="transferRequest?.transferReason">
+          <h4>Transfer Reason</h4>
+          <p>{{ transferRequest?.transferReason }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline Card -->
+    <div class="info-card timeline-card">
+      <div class="card-header">
+        <h3><i class="pi pi-clock"></i> Timeline</h3>
+      </div>
+      <div class="card-content">
+        <div class="timeline">
+          <div class="timeline-item" *ngIf="transferRequest?.createdAt">
+            <div class="timeline-marker created"></div>
+            <div class="timeline-content">
+              <h4>Created</h4>
+              <p>{{ transferRequest?.createdAt | date: 'medium' }}</p>
+            </div>
+          </div>
+          <div class="timeline-item" *ngIf="transferRequest?.validatedAt">
+            <div class="timeline-marker validated"></div>
+            <div class="timeline-content">
+              <h4>Validated</h4>
+              <p>{{ transferRequest?.validatedAt | date: 'medium' }}</p>
+            </div>
+          </div>
+          <div class="timeline-item" *ngIf="transferRequest?.invoiceDate">
+            <div class="timeline-marker invoice"></div>
+            <div class="timeline-content">
+              <h4>Invoice Generated</h4>
+              <p>{{ transferRequest?.invoiceDate | date: 'medium' }}</p>
+              <span class="invoice-number">{{ transferRequest?.invoiceNumber }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Documents Card -->
+    <div class="info-card documents-card" *ngIf="(transferRequest?.documents?.length ?? 0) > 0">
+      <div class="card-header">
+        <h3><i class="pi pi-file"></i> Documents</h3>
+      </div>
+      <div class="card-content">
+        <div class="documents-grid">
+          <div class="document-item" *ngFor="let document of transferRequest?.documents">
+            <div class="document-icon">
+              <i class="pi pi-file-pdf" *ngIf="document.fileType === 'pdf'"></i>
+              <i class="pi pi-image" *ngIf="document.fileType === 'image'"></i>
+              <i class="pi pi-file" *ngIf="document.fileType !== 'pdf' && document.fileType !== 'image'"></i>
+            </div>
+            <div class="document-details">
+              <h4>{{ document.fileName }}</h4>
+              <p>{{ document.fileType | uppercase }}</p>
+              <span class="document-date">{{ document.uploadDate | date: 'short' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Action Section -->
+  <div class="action-section">
+    <p-button
+      label="Back to List"
+      icon="pi pi-arrow-left"
+      (click)="goBack()"
+      class="p-button-outlined back-button"
+    ></p-button>
+  </div>
+</div>

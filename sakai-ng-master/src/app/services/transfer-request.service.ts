@@ -5,8 +5,6 @@ import { TransferRequest } from '../models/transfer-request';
 import { Beneficiary } from '../models/beneficiary';
 import { Document } from '../models/document';
 
-
-
 @Injectable({
   providedIn: 'root'
 })
@@ -53,7 +51,7 @@ export class TransferRequestService {
 
   createTransferRequestWithDocument(transferRequest: TransferRequest, file: File): Observable<TransferRequest> {
     const formData = new FormData();
-    formData.append('transferRequest', new Blob([JSON.stringify({
+    const transferRequestBlob = new Blob([JSON.stringify({
       userId: transferRequest.userId,
       commissionAccountNumber: transferRequest.commissionAccountNumber,
       commissionAccountType: transferRequest.commissionAccountType,
@@ -76,8 +74,15 @@ export class TransferRequestService {
         destinationBank: transferRequest.beneficiary.destinationBank,
         bankAccount: transferRequest.beneficiary.bankAccount
       }
-    })], { type: 'application/json' }));
+    })], { type: 'application/json' });
+    formData.append('transferRequest', transferRequestBlob);
     formData.append('document', file);
+
+    for (const pair of formData.entries()) {
+      console.log(`${pair[0]}: ${pair[1] instanceof Blob ? 'Blob' : pair[1]}`);
+    }
+    console.log('File appended:', file.name, file.type, file.size);
+
     return this.http.post<TransferRequest>(this.apiUrl, formData);
   }
 
@@ -99,7 +104,14 @@ export class TransferRequestService {
       isNegotiation: transferRequest.isNegotiation,
       isTermNegotiation: transferRequest.isTermNegotiation,
       isFinancing: transferRequest.isFinancing,
-      beneficiaryId: transferRequest.beneficiary.idBeneficiary
+      beneficiaryId: transferRequest.beneficiary.idBeneficiary,
+      beneficiary: {
+        idBeneficiary: transferRequest.beneficiary.idBeneficiary,
+        name: transferRequest.beneficiary.name,
+        country: transferRequest.beneficiary.country,
+        destinationBank: transferRequest.beneficiary.destinationBank,
+        bankAccount: transferRequest.beneficiary.bankAccount
+      }
     };
     return this.http.put<TransferRequest>(`${this.apiUrl}/${id}`, requestBody);
   }
@@ -132,15 +144,15 @@ export class TransferRequestService {
   uploadDocument(transferRequestId: number, file: File): Observable<string> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<string>(
-      `${this.apiUrl}/${transferRequestId}/documents`,
-      formData,
-      { responseType: 'text' as 'json' }
-    );
+    const url = `${this.apiUrl}/${transferRequestId}/documents`;
+    return this.http.post(url, formData, { responseType: 'text' as 'text' }) as Observable<string>;
   }
 
   getDocuments(transferRequestId: number): Observable<Document[]> {
     return this.http.get<Document[]>(`${this.apiUrl}/${transferRequestId}/documents`);
   }
-}
 
+  deleteDocument(transferRequestId: number, documentId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${transferRequestId}/documents/${documentId}`);
+  }
+}

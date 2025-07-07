@@ -1,8 +1,7 @@
-// new-transfer-request.component.ts
 import { Component, OnInit } from '@angular/core';
-import { TransferRequestService } from '../../services/transfer-request.service';
+import { TransferRequestService } from '../../../services/transfer-request.service';
 import { MessageService } from 'primeng/api';
-import { TransferRequest } from '../../models/transfer-request';
+import { TransferRequest } from '../../../models/transfer-request';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -21,6 +20,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { TableModule } from 'primeng/table';
 import { IconFieldModule } from 'primeng/iconfield';
 import { FileUploadModule } from 'primeng/fileupload';
+import { lastValueFrom } from 'rxjs'; // Import for modern Observable handling
 
 @Component({
   selector: 'app-new-transfer-request',
@@ -45,7 +45,7 @@ import { FileUploadModule } from 'primeng/fileupload';
     CheckboxModule
   ],
   templateUrl: './new-transfer-request.component.html',
-  styleUrls: ['./new-transfer-request.component.scss'], 
+  styleUrls: ['./new-transfer-request.component.scss'],
   providers: [MessageService, TransferRequestService]
 })
 export class NewTransferRequestComponent implements OnInit {
@@ -96,14 +96,24 @@ export class NewTransferRequestComponent implements OnInit {
     private transferRequestService: TransferRequestService,
     private messageService: MessageService,
     public router: Router
-    
   ) {}
 
   ngOnInit() {}
 
   onFileSelected(event: any) {
-    this.selectedFiles = event.files || [];
+  this.selectedFiles = event.files || [];
+  const validFiles: File[] = [];
+  for (const file of this.selectedFiles) {
+    console.log(`File: ${file.name}, Type: ${file.type}, Size: ${file.size}`);
+    if (['application/pdf', 'image/png', 'image/jpeg'].includes(file.type)) {
+      validFiles.push(file);
+    } else {
+      this.showError(`Invalid file type for "${file.name}". Only PDF, PNG, and JPEG are allowed`);
+    }
   }
+  this.selectedFiles = validFiles; // Keep only valid files
+
+}
 
   async saveTransferRequest() {
     this.submitted = true;
@@ -111,11 +121,15 @@ export class NewTransferRequestComponent implements OnInit {
 
     this.isSaving = true;
     try {
-      const result = this.selectedFiles.length > 0
-        ? await this.transferRequestService.createTransferRequestWithDocument(this.transferRequest, this.selectedFiles[0]).toPromise()
-        : await this.transferRequestService.createTransferRequest(this.transferRequest).toPromise();
-      if (result && this.selectedFiles.length > 1) {
-        await this.uploadDocumentsSequentially(result.idTransferRequest!);
+      let result: TransferRequest;
+      if (this.selectedFiles.length > 0) {
+        if (!this.selectedFiles[0]) throw new Error('No valid file selected');
+        result = await lastValueFrom(this.transferRequestService.createTransferRequestWithDocument(this.transferRequest, this.selectedFiles[0]));
+      } else {
+        result = await lastValueFrom(this.transferRequestService.createTransferRequest(this.transferRequest));
+      }
+      if (result.idTransferRequest && this.selectedFiles.length > 1) {
+        await this.uploadDocumentsSequentially(result.idTransferRequest);
       }
       this.showSuccess('Transfer request saved successfully');
       this.router.navigate(['/transfer-requests']);
@@ -180,7 +194,7 @@ export class NewTransferRequestComponent implements OnInit {
   private async uploadDocumentsSequentially(transferRequestId: number): Promise<void> {
     for (const file of this.selectedFiles.slice(1)) {
       try {
-        await this.transferRequestService.uploadDocument(transferRequestId, file).toPromise();
+        const response = await lastValueFrom(this.transferRequestService.uploadDocument(transferRequestId, file));
         this.showSuccess(`Document "${file.name}" uploaded successfully`);
       } catch (error) {
         this.showError(`Failed to upload "${file.name}"`, error);

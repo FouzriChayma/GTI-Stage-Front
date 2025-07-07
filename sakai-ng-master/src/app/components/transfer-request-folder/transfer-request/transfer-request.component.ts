@@ -17,10 +17,10 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { FileUploadModule } from 'primeng/fileupload';
 import { DropdownModule } from 'primeng/dropdown';
 import { CheckboxModule } from 'primeng/checkbox';
-import { TransferRequestService } from '../../services/transfer-request.service';
-import { TransferRequest } from '../../models/transfer-request';
-import { Beneficiary } from '../../models/beneficiary';
-import { Document } from '../../models/document';
+import { TransferRequestService } from '../../../services/transfer-request.service';
+import { TransferRequest } from '../../../models/transfer-request';
+import { Beneficiary } from '../../../models/beneficiary';
+import { Document } from '../../../models/document';
 import { Router } from '@angular/router';
 interface Column {
   field: string;
@@ -391,6 +391,7 @@ editTransferRequest(transferRequest: TransferRequest) {
     return true;
   }
 
+  
   private showSuccess(message: string) {
     this.messageService.add({
       severity: 'success',
@@ -427,4 +428,7 @@ editTransferRequest(transferRequest: TransferRequest) {
         return 'info';
     }
   }
+  viewDetails(id: number) {
+  this.router.navigate([`/transfert-details/${id}`]);
+}
 }

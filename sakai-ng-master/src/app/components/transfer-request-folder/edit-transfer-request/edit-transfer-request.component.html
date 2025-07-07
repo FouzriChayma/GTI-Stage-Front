@@ -3,12 +3,11 @@
   
   <!-- Header Section -->
   <div class="form-header">
-    <h1 class="form-title">New Transfer Request</h1>
-    <p class="form-subtitle">Complete all required fields to submit your international transfer request</p>
+    <h1 class="form-title">Edit Transfer Request</h1>
+    <p class="form-subtitle">Update the transfer request details and save your changes</p>
   </div>
 
-  <form class="p-fluid">
-    
+  <form class="p-fluid" *ngIf="!loading && transferRequest">
     <!-- Account Information Section -->
     <div class="form-section account-section">
       <h2 class="section-title account-info">Account Information</h2>
@@ -397,8 +396,44 @@
     <!-- Documents Section -->
     <div class="form-section documents-section">
       <h2 class="section-title documents">Supporting Documents</h2>
+      
+      <!-- Existing Documents -->
       <div class="field col-12">
-        <label for="documents">Upload Documents (Optional)</label>
+        <h3>Existing Documents</h3>
+        <p-table [value]="transferRequest.documents || []" [tableStyle]="{'min-width': '50rem'}" *ngIf="(transferRequest.documents?.length || 0) > 0">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>File Name</th>
+              <th>File Type</th>
+              <th>Upload Date</th>
+              <th>Action</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-document>
+            <tr>
+              <td>{{ document.fileName }}</td>
+              <td>{{ document.fileType }}</td>
+              <td>{{ document.uploadDate | date:'medium' }}</td>
+              <td>
+                <p-button
+                  icon="pi pi-trash"
+                  styleClass="p-button-danger p-button-sm"
+                  (click)="deleteDocument(document.idDocument)"
+                  [disabled]="isSaving"
+                ></p-button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+        <p *ngIf="(transferRequest.documents?.length || 0) === 0">No documents available.</p>
+      </div>
+
+      <!-- Upload New Documents -->
+      <div class="field col-12">
+        <label for="documents">Upload Additional Documents (Optional)</label>
+        <!-- [auto]="false" disables auto upload -->
+        <!-- [showUploadButton]="false" hides the Upload button -->
+        <!-- [showCancelButton]="false" hides the Cancel button -->
         <p-fileUpload
           name="documents"
           [multiple]="true"
@@ -406,6 +441,9 @@
           (onSelect)="onFileSelected($event)"
           chooseLabel="Browse Files"
           [maxFileSize]="10000000"
+          [auto]="false"
+          [showUploadButton]="false"
+          [showCancelButton]="false"
           class="modern-file-upload"
         ></p-fileUpload>
         <small class="file-info">Supported formats: PDF, PNG, JPEG (Max 10MB each)</small>
@@ -413,8 +451,16 @@
     </div>
   </form>
 
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="loading-content">
+      <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: #3b82f6;"></i>
+      <p>Loading transfer request...</p>
+    </div>
+  </div>
+
   <!-- Action Buttons -->
-  <div class="action-buttons">
+  <div class="action-buttons" *ngIf="!loading && transferRequest">
     <p-button
       label="Cancel"
       icon="pi pi-times"
@@ -424,9 +470,9 @@
     ></p-button>
     
     <p-button
-      label="Submit Transfer Request"
+      label="Update Transfer Request"
       icon="pi pi-check"
-      (click)="saveTransferRequest()"
+      (click)="updateTransferRequest()"
       [loading]="isSaving"
       styleClass="p-button-primary"
       class="submit-btn"

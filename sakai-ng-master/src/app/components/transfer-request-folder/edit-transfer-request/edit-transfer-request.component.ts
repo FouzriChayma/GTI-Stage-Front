@@ -1,8 +1,8 @@
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { TransferRequestService } from "../../services/transfer-request.service";
+import { TransferRequestService } from "../../../services/transfer-request.service";
 import { MessageService } from "primeng/api";
-import { TransferRequest } from "../../models/transfer-request";
+import { TransferRequest } from "../../../models/transfer-request";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
@@ -20,6 +20,7 @@ import { CheckboxModule } from "primeng/checkbox";
 import { TableModule } from "primeng/table";
 import { IconFieldModule } from "primeng/iconfield";
 import { FileUploadModule } from "primeng/fileupload";
+import { lastValueFrom } from "rxjs";
 
 @Component({
   selector: "app-edit-transfer-request",
@@ -37,7 +38,6 @@ import { FileUploadModule } from "primeng/fileupload";
     DialogModule,
     TagModule,
     InputIconModule,
-    IconFieldModule,
     ConfirmDialogModule,
     FileUploadModule,
     TableModule,
@@ -109,10 +109,10 @@ export class EditTransferRequestComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    console.log("EditTransferRequestComponent initialized");
+    console.log("EditTransferRequestComponent initialized at", new Date().toLocaleString("en-US", { timeZone: "CET" }));
     this.route.params.subscribe((params) => {
       console.log("Route params:", params);
-      this.transferRequestId = +params["id"] || 0; // Ensure id is a number, default to 0 if invalid
+      this.transferRequestId = +params["id"] || 0;
       console.log("Extracted transferRequestId:", this.transferRequestId);
 
       if (this.transferRequestId > 0) {
@@ -142,7 +142,6 @@ export class EditTransferRequestComponent implements OnInit {
           return;
         }
 
-        // Safely populate transferRequest with API data
         this.transferRequest = {
           idTransferRequest: data.idTransferRequest || this.transferRequestId,
           userId: data.userId || 0,
@@ -172,10 +171,25 @@ export class EditTransferRequestComponent implements OnInit {
           documents: data.documents || [],
         };
 
+        // Load documents
+        this.transferRequestService.getDocuments(this.transferRequestId).subscribe({
+          next: (documents) => {
+            this.transferRequest.documents = documents || [];
+            console.log("Loaded documents:", JSON.stringify(documents, null, 2));
+            this.loading = false;
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error("Failed to load documents:", err);
+            this.showError("Failed to load documents", err);
+            this.loading = false;
+            this.cdr.detectChanges();
+          }
+        });
+
         console.log("=== PROCESSED TRANSFER REQUEST ===");
         console.log("Final transferRequest:", JSON.stringify(this.transferRequest, null, 2));
-        this.loading = false;
-        this.cdr.detectChanges(); // Ensure UI updates
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error("=== API ERROR ===");
@@ -197,6 +211,30 @@ export class EditTransferRequestComponent implements OnInit {
 
   onFileSelected(event: any) {
     this.selectedFiles = event.files || [];
+    const validFiles: File[] = [];
+    for (const file of this.selectedFiles) {
+      console.log(`File: ${file.name}, Type: ${file.type}, Size: ${file.size}`);
+      if (['application/pdf', 'image/png', 'image/jpeg'].includes(file.type)) {
+        validFiles.push(file);
+      } else {
+        this.showError(`Invalid file type for "${file.name}". Only PDF, PNG, and JPEG are allowed`);
+      }
+    }
+    this.selectedFiles = validFiles;
+    this.cdr.detectChanges();
+  }
+
+  async deleteDocument(documentId: number) {
+    if (!confirm("Are you sure you want to delete this document?")) return;
+
+    try {
+      await lastValueFrom(this.transferRequestService.deleteDocument(this.transferRequestId, documentId));
+      this.transferRequest.documents = (this.transferRequest.documents || []).filter(doc => doc.idDocument !== documentId);
+      this.showSuccess("Document deleted successfully");
+      this.cdr.detectChanges();
+    } catch (error) {
+      this.showError("Failed to delete document", error);
+    }
   }
 
   async updateTransferRequest() {
@@ -209,9 +247,7 @@ export class EditTransferRequestComponent implements OnInit {
         throw new Error("Transfer request is null or missing ID");
       }
 
-      const result = await this.transferRequestService
-        .updateTransferRequest(this.transferRequest.idTransferRequest, this.transferRequest)
-        .toPromise();
+      const result = await lastValueFrom(this.transferRequestService.updateTransferRequest(this.transferRequest.idTransferRequest, this.transferRequest));
 
       if (!result) {
         throw new Error("Failed to update transfer request");
@@ -227,6 +263,7 @@ export class EditTransferRequestComponent implements OnInit {
       this.showError("Failed to update transfer request", error);
     } finally {
       this.isSaving = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -335,13 +372,30 @@ export class EditTransferRequestComponent implements OnInit {
   private async uploadDocumentsSequentially(transferRequestId: number): Promise<void> {
     for (const file of this.selectedFiles) {
       try {
-        await this.transferRequestService.uploadDocument(transferRequestId, file).toPromise();
+        console.log(`Attempting to upload file: ${file.name} at ${new Date().toLocaleString("en-US", { timeZone: "CET" })}`);
+        const response = await lastValueFrom(this.transferRequestService.uploadDocument(transferRequestId, file));
+        console.log(`Upload response for ${file.name}:`, response);
+
+        // Add temporary document for immediate feedback
+        const tempDocument = {
+          idDocument: -1,
+          fileName: file.name,
+          fileType: file.type,
+          filePath: "",
+          uploadDate: new Date().toISOString()
+        };
+        if (!this.transferRequest.documents) this.transferRequest.documents = [];
+        this.transferRequest.documents.push(tempDocument);
+        this.cdr.detectChanges();
+
         this.showSuccess(`Document "${file.name}" uploaded successfully`);
       } catch (error) {
         this.showError(`Failed to upload "${file.name}"`, error);
+        console.error(`Upload error for ${file.name} at ${new Date().toLocaleString("en-US", { timeZone: "CET" })}:`, error);
       }
     }
     this.selectedFiles = [];
+    this.cdr.detectChanges();
   }
 
   private showSuccess(message: string) {

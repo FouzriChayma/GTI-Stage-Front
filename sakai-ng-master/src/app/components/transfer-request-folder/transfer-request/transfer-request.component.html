@@ -30,6 +30,7 @@
   currentPageReportTemplate="Showing {first} to {last} of {totalRecords} transfer requests"
   [showCurrentPageReport]="true"
   [rowsPerPageOptions]="[10, 20, 30]"
+  styleClass="p-datatable-sm" 
 >
   <ng-template pTemplate="caption">
     <div class="flex items-center justify-between">
@@ -42,13 +43,11 @@
   </ng-template>
   <ng-template pTemplate="header">
     <tr>
-      <th style="width: 3rem">
+      <th style="width: 2rem">
         <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
       </th>
-      <th pSortableColumn="idTransferRequest" style="min-width: 8rem">
-        ID <p-sortIcon field="idTransferRequest"></p-sortIcon>
-      </th>
-      <th pSortableColumn="userId" style="min-width: 8rem">
+      
+      <th pSortableColumn="userId" style="min-width: 7rem">
         User ID <p-sortIcon field="userId"></p-sortIcon>
       </th>
       <th pSortableColumn="commissionAccountNumber" style="min-width: 12rem">
@@ -66,10 +65,8 @@
       <th pSortableColumn="status" style="min-width: 10rem">
         Status <p-sortIcon field="status"></p-sortIcon>
       </th>
-      <th pSortableColumn="beneficiary.name" style="min-width: 12rem">
-        Beneficiary <p-sortIcon field="beneficiary.name"></p-sortIcon>
-      </th>
-      <th style="min-width: 12rem">Documents</th>
+      
+      <th style="min-width: 7rem">Documents</th>
       <th style="min-width: 16rem">Actions</th>
     </tr>
   </ng-template>
@@ -78,7 +75,6 @@
       <td>
         <p-tableCheckbox [value]="transferRequest"></p-tableCheckbox>
       </td>
-      <td>{{ transferRequest.idTransferRequest }}</td>
       <td>{{ transferRequest.userId }}</td>
       <td>{{ transferRequest.commissionAccountNumber }}</td>
       <td>{{ transferRequest.transferType }}</td>
@@ -87,7 +83,6 @@
       <td>
         <p-tag [value]="transferRequest.status" [severity]="getSeverity(transferRequest.status)"></p-tag>
       </td>
-      <td>{{ transferRequest.beneficiary?.name }}</td>
       <td>{{ transferRequest.documents?.length || 0 }}</td>
       <td>
         <div class="flex gap-2">
@@ -95,6 +90,7 @@
             icon="pi pi-pencil"
             [rounded]="true"
             [outlined]="true"
+            size="small"
             (click)="editTransferRequest(transferRequest)"
           ></p-button>
           <p-button
@@ -102,6 +98,7 @@
             severity="danger"
             [rounded]="true"
             [outlined]="true"
+            size="small"
             (click)="deleteTransferRequest(transferRequest)"
           ></p-button>
           <p-button
@@ -109,6 +106,7 @@
             severity="success"
             [rounded]="true"
             [outlined]="true"
+            size="small"
             (click)="validateTransferRequest(transferRequest)"
             [disabled]="transferRequest.status !== 'PENDING' && transferRequest.status !== 'INFO_REQUESTED'"
           ></p-button>
@@ -117,6 +115,7 @@
             severity="danger"
             [rounded]="true"
             [outlined]="true"
+            size="small"
             (click)="rejectTransferRequest(transferRequest)"
             [disabled]="transferRequest.status !== 'PENDING' && transferRequest.status !== 'INFO_REQUESTED'"
           ></p-button>
@@ -125,8 +124,17 @@
             severity="secondary"
             [rounded]="true"
             [outlined]="true"
+            size="small"
             (click)="requestAdditionalInfo(transferRequest)"
             [disabled]="transferRequest.status !== 'PENDING'"
+          ></p-button>
+          <p-button
+            icon="pi pi-eye"
+            severity="secondary"
+            [rounded]="true"
+            [outlined]="true"
+            size="small"
+            (click)="viewDetails(transferRequest.idTransferRequest)"
           ></p-button>
         </div>
       </td>

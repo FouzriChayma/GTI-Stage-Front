@@ -3,12 +3,12 @@
   
   <!-- Header Section -->
   <div class="form-header">
-    <h1 class="form-title">Edit Transfer Request</h1>
-    <p class="form-subtitle">Update the transfer request details and save your changes</p>
+    <h1 class="form-title">New Transfer Request</h1>
+    <p class="form-subtitle">Complete all required fields to submit your international transfer request</p>
   </div>
 
-
-  <form class="p-fluid" *ngIf="!loading && transferRequest">
+  <form class="p-fluid">
+    
     <!-- Account Information Section -->
     <div class="form-section account-section">
       <h2 class="section-title account-info">Account Information</h2>
@@ -398,7 +398,7 @@
     <div class="form-section documents-section">
       <h2 class="section-title documents">Supporting Documents</h2>
       <div class="field col-12">
-        <label for="documents">Upload Additional Documents (Optional)</label>
+        <label for="documents">Upload Documents (Optional)</label>
         <p-fileUpload
           name="documents"
           [multiple]="true"
@@ -406,6 +406,9 @@
           (onSelect)="onFileSelected($event)"
           chooseLabel="Browse Files"
           [maxFileSize]="10000000"
+          [auto]="false"
+          [showUploadButton]="false"
+          [showCancelButton]="false"
           class="modern-file-upload"
         ></p-fileUpload>
         <small class="file-info">Supported formats: PDF, PNG, JPEG (Max 10MB each)</small>
@@ -413,16 +416,8 @@
     </div>
   </form>
 
-  <!-- Loading State -->
-  <div class="loading-container" *ngIf="loading">
-    <div class="loading-content">
-      <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: #3b82f6;"></i>
-      <p>Loading transfer request...</p>
-    </div>
-  </div>
-
   <!-- Action Buttons -->
-  <div class="action-buttons" *ngIf="!loading && transferRequest">
+  <div class="action-buttons">
     <p-button
       label="Cancel"
       icon="pi pi-times"
@@ -432,9 +427,9 @@
     ></p-button>
     
     <p-button
-      label="Update Transfer Request"
+      label="Submit Transfer Request"
       icon="pi pi-check"
-      (click)="updateTransferRequest()"
+      (click)="saveTransferRequest()"
       [loading]="isSaving"
       styleClass="p-button-primary"
       class="submit-btn"
