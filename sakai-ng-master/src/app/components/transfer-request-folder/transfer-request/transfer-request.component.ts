@@ -140,17 +140,17 @@ export class TransferRequestComponent implements OnInit {
   }
 
   loadTransferRequests() {
-  this.transferRequestService.searchTransferRequests(
-    this.searchCriteria.userId === null ? undefined : this.searchCriteria.userId,
-    this.searchCriteria.commissionAccountNumber || undefined,
-    this.searchCriteria.transferType || undefined,
-    this.searchCriteria.status || undefined,
-    this.searchCriteria.amount === null ? undefined : this.searchCriteria.amount
-  ).subscribe({
-    next: (data) => this.transferRequests.set(data),
-    error: (err) => this.showError('Failed to load transfer requests', err)
-  });
-}
+    this.transferRequestService.searchTransferRequests(
+      this.searchCriteria.userId === null ? undefined : this.searchCriteria.userId,
+      this.searchCriteria.commissionAccountNumber || undefined,
+      this.searchCriteria.transferType || undefined,
+      this.searchCriteria.status || undefined,
+      this.searchCriteria.amount === null ? undefined : this.searchCriteria.amount
+    ).subscribe({
+      next: (data) => this.transferRequests.set(data),
+      error: (err) => this.showError('Failed to load transfer requests', err)
+    });
+  }
 
   initColumns() {
     this.cols = [
@@ -161,18 +161,30 @@ export class TransferRequestComponent implements OnInit {
       { field: 'amount', header: 'Amount' },
       { field: 'currency', header: 'Currency' },
       { field: 'status', header: 'Status' },
-      { field: 'beneficiary.name', header: 'Beneficiary' },
-      { field: 'documents', header: 'Documents' }
+      { field: 'beneficiary_name', header: 'Beneficiary' }, // Use flat key
+      { field: 'documents_count', header: 'Documents' } // Use flat key
     ];
     this.exportColumns = this.cols.map(col => ({ title: col.header, dataKey: col.field }));
   }
 
-  onFileSelected(event: any) {
-    this.selectedFiles = event.files || [];
+  exportCSV() {
+    // Transform data to flatten nested and computed fields
+    const originalData = this.transferRequests();
+    const exportData = originalData.map(transfer => ({
+      ...transfer,
+      beneficiary_name: transfer.beneficiary?.name || '',
+      documents_count: transfer.documents?.length || 0
+    }));
+
+    // Temporarily set table value to transformed data
+    this.dt.value = exportData;
+    this.dt.exportCSV({ selectionOnly: false });
+    // Restore table value
+    this.dt.value = originalData;
   }
 
-  exportCSV() {
-    this.dt.exportCSV();
+  onFileSelected(event: any) {
+    this.selectedFiles = event.files || [];
   }
 
   onGlobalFilter(table: Table, event: Event) {

@@ -33,9 +33,7 @@
     </div>
   </ng-template>
 
-  <ng-template pTemplate="end">
-    <p-button label="Export" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
-  </ng-template>
+  
 </p-toolbar>
 
 <p-table
@@ -50,16 +48,13 @@
   dataKey="idTransferRequest"
   currentPageReportTemplate="Showing {first} to {last} of {totalRecords} transfer requests"
   [showCurrentPageReport]="true"
-  [rowsPerPageOptions]="[10, 20, 30]"
+  [rowsPerPageOptions]="[5, 10, 15]"
   styleClass="p-datatable-sm"
 >
   <ng-template pTemplate="caption">
     <div class="flex items-center justify-between">
       <h5 class="m-0">Manage Transfer Requests</h5>
-      <span class="p-input-icon-left">
-        <i class="pi pi-search"></i>
-        <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search..." />
-      </span>
+      
     </div>
   </ng-template>
   <ng-template pTemplate="header">
