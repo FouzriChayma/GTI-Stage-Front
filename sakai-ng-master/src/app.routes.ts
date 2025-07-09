@@ -8,6 +8,7 @@ import { TransferRequestComponent } from './app/components/transfer-request-fold
 import { NewTransferRequestComponent } from './app/components/transfer-request-folder/new-transfer-request/new-transfer-request.component';
 import { EditTransferRequestComponent } from './app/components/transfer-request-folder/edit-transfer-request/edit-transfer-request.component';
 import { TransfertDetailsComponent } from './app/components/transfer-request-folder/transfert-details/transfert-details.component';
+import { UserComponent } from './app/components/user/user/user.component';
 
 export const appRoutes: Routes = [
     {
@@ -19,7 +20,9 @@ export const appRoutes: Routes = [
             { path: 'transfer-requests', component: TransferRequestComponent },
             { path: 'new-transfer-request', component: NewTransferRequestComponent },
             { path: 'edit-transfer-request/:id', component: EditTransferRequestComponent }, 
-            { path: 'transfert-details/:id', component: TransfertDetailsComponent },           { path: 'documentation', component: Documentation },
+            { path: 'transfert-details/:id', component: TransfertDetailsComponent },           
+            { path: 'documentation', component: Documentation },
+            { path: 'users', component: UserComponent }, // Added route for UserComponent
             { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
         ]
     },

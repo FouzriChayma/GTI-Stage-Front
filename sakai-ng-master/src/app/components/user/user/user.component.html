@@ -1,0 +1,64 @@
+<!-- src/app/components/user/user/user.component.html -->
+<div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+<h2>User Management</h2>
+
+<!-- Register Form -->
+<h3>Register New User</h3>
+<form (ngSubmit)="registerUser()" #registerForm="ngForm">
+  <div>
+    <label>Email:</label>
+    <input [(ngModel)]="newUser.email" name="email" required>
+  </div>
+  <div>
+    <label>First Name:</label>
+    <input [(ngModel)]="newUser.firstName" name="firstName" required>
+  </div>
+  <div>
+    <label>Last Name:</label>
+    <input [(ngModel)]="newUser.lastName" name="lastName" required>
+  </div>
+  <div>
+  <label>Password:</label>
+  <input [(ngModel)]="newUser.password" name="password" type="password" required>
+</div>
+  <div>
+    <label>Phone Number:</label>
+    <input [(ngModel)]="newUser.phoneNumber" name="phoneNumber" required>
+  </div>
+  <button type="submit" [disabled]="!registerForm.valid">Register</button>
+</form>
+
+<!-- Login Form -->
+<h3>Login</h3>
+<form (ngSubmit)="loginUser(loginEmail.value, loginPassword.value)" #loginForm="ngForm">
+  <div>
+    <label>Email:</label>
+    <input #loginEmail [(ngModel)]="loginEmail" name="loginEmail" required>
+  </div>
+  <div>
+    <label>Password:</label>
+    <input #loginPassword [(ngModel)]="loginPassword" name="loginPassword" type="password" required>
+  </div>
+  <button type="submit" [disabled]="!loginForm.valid">Login</button>
+</form>
+
+<!-- User List -->
+<h3>Users</h3>
+<ul>
+  <li *ngFor="let user of users">
+    {{ user.firstName }} {{ user.lastName }} ({{ user.email }})
+    <button (click)="getUser(user.id)">View</button>
+    <button (click)="deleteUser(user.id)">Delete</button>
+  </li>
+</ul>
+
+<!-- User Details -->
+<div *ngIf="selectedUser">
+  <h3>User Details</h3>
+  <p>Email: {{ selectedUser.email }}</p> <!-- Removed ?. -->
+  <p>Name: {{ selectedUser.firstName }} {{ selectedUser.lastName }}</p> <!-- Removed ?. -->
+  <p>Phone: {{ selectedUser.phoneNumber }}</p> <!-- Removed ?. -->
+  <button (click)="updateUser()">Update</button>
+  <button (click)="selectedUser = null">Close</button>
+</div>
