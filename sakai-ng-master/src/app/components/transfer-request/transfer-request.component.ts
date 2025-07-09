@@ -881,7 +881,6 @@ export class TransferRequestComponent implements OnInit {
   }
 
   isEditDisabled(status: string | undefined): boolean {
-    console.log("Status checked:", status)
     return status === "VALIDATED" || status === "REJECTED" || status === "COMPLETED"
   }
    
