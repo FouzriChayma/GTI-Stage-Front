@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, ViewChild, signal } from "@angular/core"
-import { ActivatedRoute, Router } from "@angular/router" // Fixed: removed 'type'
+import { ActivatedRoute, Router } from "@angular/router"
 import { TransferRequestService } from "../../services/transfer-request.service"
 import { MessageService, ConfirmationService } from "primeng/api"
 import { Table } from "primeng/table"
@@ -9,7 +9,7 @@ import { ButtonModule } from "primeng/button"
 import { RippleModule } from "primeng/ripple"
 import { ToastModule } from "primeng/toast"
 import { ToolbarModule } from "primeng/toolbar"
-import { TooltipModule } from "primeng/tooltip"; // Add this import
+import { TooltipModule } from "primeng/tooltip"
 import { InputTextModule } from "primeng/inputtext"
 import { InputNumberModule } from "primeng/inputnumber"
 import { DialogModule } from "primeng/dialog"
@@ -18,10 +18,10 @@ import { InputIconModule } from "primeng/inputicon"
 import { IconFieldModule } from "primeng/iconfield"
 import { ConfirmDialogModule } from "primeng/confirmdialog"
 import { FileUploadModule } from "primeng/fileupload"
-import { DropdownModule } from "primeng/dropdown" // Back to DropdownModule
+import { DropdownModule } from "primeng/dropdown"
 import { CheckboxModule } from "primeng/checkbox"
 import { TableModule } from "primeng/table"
-import { lastValueFrom } from "rxjs"
+import { lastValueFrom, Observable } from "rxjs"
 import { TransferRequest } from "../../models/transfer-request"
 import { ProgressSpinnerModule } from "primeng/progressspinner"
 
@@ -45,8 +45,8 @@ interface ExportColumn {
     ButtonModule,
     RippleModule,
     ToastModule,
-    DropdownModule, // Back to DropdownModule
-    TooltipModule, // Add this to the imports array
+    DropdownModule,
+    TooltipModule,
     ToolbarModule,
     InputTextModule,
     InputNumberModule,
@@ -122,6 +122,8 @@ export class TransferRequestComponent implements OnInit {
   exportColumns!: ExportColumn[]
   cols!: Column[]
   currentValidatorId = 1
+  http: any
+  apiUrl: any
 
   constructor(
     private route: ActivatedRoute,
@@ -225,11 +227,9 @@ export class TransferRequestComponent implements OnInit {
   openNew() {
     this.mode = "new"
     console.log("Mode set to:", this.mode)
-    // Create a completely new object reference
     this.transferRequest = this.createEmptyTransferRequest()
     this.submitted = false
     this.selectedFiles = []
-    // Force change detection after a short delay to ensure proper rendering
     setTimeout(() => {
       this.cdr.detectChanges()
     }, 0)
@@ -284,7 +284,6 @@ export class TransferRequestComponent implements OnInit {
           },
           documents: data.documents || [],
         }
-        // Load documents separately
         this.transferRequestService.getDocuments(this.transferRequestId).subscribe({
           next: (documents) => {
             this.transferRequest.documents = documents || []
@@ -402,15 +401,18 @@ export class TransferRequestComponent implements OnInit {
 
   private async createTransferRequest() {
     let result: TransferRequest
-    if (this.selectedFiles.length > 0 && this.selectedFiles[0]) {
+    if (this.selectedFiles.length > 0) {
+      // Use createTransferRequestWithDocument if files are selected
       result = await lastValueFrom(
         this.transferRequestService.createTransferRequestWithDocument(this.transferRequest, this.selectedFiles[0]),
       )
+      // Upload additional documents if any
+      if (result.idTransferRequest && this.selectedFiles.length > 1) {
+        await this.uploadDocumentsSequentially(result.idTransferRequest)
+      }
     } else {
+      // Use createTransferRequest for no documents
       result = await lastValueFrom(this.transferRequestService.createTransferRequest(this.transferRequest))
-    }
-    if (result.idTransferRequest && this.selectedFiles.length > 1) {
-      await this.uploadDocumentsSequentially(result.idTransferRequest)
     }
     this.showSuccess("Transfer request created successfully")
     this.mode = "list"
@@ -421,11 +423,9 @@ export class TransferRequestComponent implements OnInit {
     if (!this.transferRequest || !this.transferRequest.idTransferRequest) {
       throw new Error("Transfer request is null or missing ID")
     }
-    // Log the data being sent for debugging
     console.log("=== UPDATE REQUEST DATA ===")
     console.log("Transfer Request ID:", this.transferRequest.idTransferRequest)
     console.log("Transfer Request Data:", JSON.stringify(this.transferRequest, null, 2))
-    // Ensure beneficiary object is properly structured
     const updateData = {
       userId: this.transferRequest.userId,
       commissionAccountNumber: this.transferRequest.commissionAccountNumber,
@@ -458,7 +458,6 @@ export class TransferRequestComponent implements OnInit {
       const result = await lastValueFrom(
         this.transferRequestService.updateTransferRequest(this.transferRequest.idTransferRequest, {
           ...this.transferRequest,
-          // Ensure proper data structure
           invoiceNumber: this.transferRequest.invoiceNumber || "",
           invoiceDate: this.transferRequest.invoiceDate || "",
           transferReason: this.transferRequest.transferReason || "",
@@ -494,7 +493,6 @@ export class TransferRequestComponent implements OnInit {
         )
         const response = await lastValueFrom(this.transferRequestService.uploadDocument(transferRequestId, file))
         console.log(`Upload response for ${file.name}:`, response)
-        // Add temporary document for immediate feedback
         const tempDocument = {
           idDocument: -1,
           fileName: file.name,
@@ -524,7 +522,6 @@ export class TransferRequestComponent implements OnInit {
       this.showError("Transfer request data is not loaded")
       return false
     }
-    // Ensure beneficiary object exists
     if (!this.transferRequest.beneficiary) {
       this.transferRequest.beneficiary = {
         idBeneficiary: undefined,
@@ -534,7 +531,6 @@ export class TransferRequestComponent implements OnInit {
         bankAccount: "",
       }
     }
-    // Clean up empty strings for optional fields
     if (!this.transferRequest.invoiceNumber) this.transferRequest.invoiceNumber = ""
     if (!this.transferRequest.invoiceDate) this.transferRequest.invoiceDate = ""
     if (!this.transferRequest.transferReason) this.transferRequest.transferReason = ""
@@ -825,7 +821,6 @@ export class TransferRequestComponent implements OnInit {
     })
   }
 
-  // Enhanced search methods
   toggleFilters() {
     this.filtersExpanded = !this.filtersExpanded
   }
@@ -845,7 +840,6 @@ export class TransferRequestComponent implements OnInit {
   setQuickFilter(filter: string) {
     this.quickFilter = this.quickFilter === filter ? '' : filter
     
-    // Apply quick filter logic
     switch (filter) {
       case 'pending':
         this.searchCriteria.status = 'PENDING'
@@ -866,28 +860,24 @@ export class TransferRequestComponent implements OnInit {
     if (this.quickFilter === '') {
       this.clearAllFilters()
     }
-    
   }
 
   clearAllFilters() {
-  this.searchCriteria = {
-    userId: null,
-    commissionAccountNumber: "",
-    transferType: null,
-    status: null,
-    amount: null,
-    dateFrom: null,
-    dateTo: null,
+    this.searchCriteria = {
+      userId: null,
+      commissionAccountNumber: "",
+      transferType: null,
+      status: null,
+      amount: null,
+      dateFrom: null,
+      dateTo: null,
+    }
+    this.quickFilter = ''
+    this.loadTransferRequests()
   }
-  this.quickFilter = ''
-  
-  // Automatically reload the data with cleared filters
-  this.loadTransferRequests()
-}
 
   applyFilters() {
     this.isSearching = true
-    // Your search logic here
     setTimeout(() => {
       this.onSearch()
       this.isSearching = false
@@ -897,9 +887,30 @@ export class TransferRequestComponent implements OnInit {
   getTotalResults(): number {
     return this.transferRequests()?.length || 0
   }
-   isEditDisabled(status: string | undefined): boolean {
-  console.log("Status checked:", status);
-  return status === "VALIDATED" || status === "REJECTED" || status === "COMPLETED";
-}
 
+  isEditDisabled(status: string | undefined): boolean {
+    console.log("Status checked:", status)
+    return status === "VALIDATED" || status === "REJECTED" || status === "COMPLETED"
+  }
+   
+  async openDocument(documentId: number, fileName: string) {
+    try {
+      this.isLoading = true;
+      const blob = await lastValueFrom(
+        this.transferRequestService.downloadDocument(this.transferRequestId, documentId)
+      );
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      this.showSuccess(`Document "${fileName}" downloaded successfully`);
+    } catch (error) {
+      this.showError(`Failed to download document "${fileName}"`, error);
+    } finally {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
 }

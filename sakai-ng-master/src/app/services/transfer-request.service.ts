@@ -5,7 +5,6 @@ import { TransferRequest } from '../models/transfer-request';
 import { Beneficiary } from '../models/beneficiary';
 import { Document } from '../models/document';
 
-
 @Injectable({
   providedIn: 'root'
 })
@@ -58,7 +57,7 @@ export class TransferRequestService {
         bankAccount: transferRequest.beneficiary.bankAccount
       }
     };
-    return this.http.post<TransferRequest>(`${this.apiUrl}/json`, requestBody);
+    return this.http.post<TransferRequest>(`${this.apiUrl}/no-document`, requestBody);
   }
 
   createTransferRequestWithDocument(transferRequest: TransferRequest, file: File): Observable<TransferRequest> {
@@ -166,5 +165,10 @@ export class TransferRequestService {
 
   deleteDocument(transferRequestId: number, documentId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${transferRequestId}/documents/${documentId}`);
+  }
+  downloadDocument(transferRequestId: number, documentId: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${transferRequestId}/documents/${documentId}/download`, {
+      responseType: 'blob'
+    });
   }
 }
