@@ -1,496 +1,595 @@
-<p-toast></p-toast>
-
-<p-toolbar styleClass="mb-6">
-  <ng-template pTemplate="start">
-    <div class="flex flex-wrap gap-2 align-items-center">
-      <p-button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
-      <p-button
-        severity="secondary"
-        label="Delete Selected"
-        icon="pi pi-trash"
-        outlined
-        (onClick)="deleteSelectedTransferRequests()"
-        [disabled]="!selectedTransferRequests || !selectedTransferRequests.length"
-      />
-    </div>
-  </ng-template>
-
-  <ng-template pTemplate="center">
-    <div class="flex flex-wrap gap-2 align-items-center">
-      <span class="p-input-icon-left mr-2">
-        <input pInputText type="number" placeholder="User ID" [(ngModel)]="searchCriteria.userId" />
-      </span>
-      <span class="p-input-icon-left mr-2">
-        <input pInputText type="text" placeholder="Commission Account" [(ngModel)]="searchCriteria.commissionAccountNumber" />
-      </span>
-      <p-dropdown [options]="transferTypes" placeholder="Transfer Type" [(ngModel)]="searchCriteria.transferType" optionLabel="label" optionValue="value" [showClear]="true"></p-dropdown>
-      <p-dropdown [options]="statuses" placeholder="Status" [(ngModel)]="searchCriteria.status" optionLabel="label" optionValue="value" [showClear]="true"></p-dropdown>
-      <span class="p-input-icon-left mr-2">
-        <p-inputNumber placeholder="Amount" [(ngModel)]="searchCriteria.amount" mode="decimal" [min]="0" [maxFractionDigits]="3"></p-inputNumber>
-      </span>
-      <p-button label="Search" icon="pi pi-search" (onClick)="onSearch()" />
-      <p-button label="Clear" icon="pi pi-times" (onClick)="clearSearch()" />
-    </div>
-  </ng-template>
-
-  
-</p-toolbar>
-
-<p-table
-  #dt
-  [value]="transferRequests()"
-  [rows]="10"
-  [paginator]="true"
-  [globalFilterFields]="['idTransferRequest', 'userId', 'commissionAccountNumber', 'transferType', 'status']"
-  [tableStyle]="{ 'min-width': '75rem' }"
-  [(selection)]="selectedTransferRequests"
-  [rowHover]="true"
-  dataKey="idTransferRequest"
-  currentPageReportTemplate="Showing {first} to {last} of {totalRecords} transfer requests"
-  [showCurrentPageReport]="true"
-  [rowsPerPageOptions]="[5, 10, 15]"
-  styleClass="p-datatable-sm"
->
-  <ng-template pTemplate="caption">
-    <div class="flex items-center justify-between">
-      <h5 class="m-0">Manage Transfer Requests</h5>
-      
-    </div>
-  </ng-template>
-  <ng-template pTemplate="header">
-    <tr>
-      <th style="width: 2rem">
-        <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-      </th>
-      
-      <th pSortableColumn="userId" style="min-width: 7rem">
-        User ID <p-sortIcon field="userId"></p-sortIcon>
-      </th>
-      <th pSortableColumn="commissionAccountNumber" style="min-width: 12rem">
-        Commission Account <p-sortIcon field="commissionAccountNumber"></p-sortIcon>
-      </th>
-      <th pSortableColumn="transferType" style="min-width: 10rem">
-        Transfer Type <p-sortIcon field="transferType"></p-sortIcon>
-      </th>
-      <th pSortableColumn="amount" style="min-width: 8rem">
-        Amount <p-sortIcon field="amount"></p-sortIcon>
-      </th>
-      <th pSortableColumn="currency" style="min-width: 8rem">
-        Currency <p-sortIcon field="currency"></p-sortIcon>
-      </th>
-      <th pSortableColumn="status" style="min-width: 10rem">
-        Status <p-sortIcon field="status"></p-sortIcon>
-      </th>
-      
-      <th style="min-width: 7rem">Documents</th>
-      <th style="min-width: 16rem">Actions</th>
-    </tr>
-  </ng-template>
-  <ng-template pTemplate="body" let-transferRequest>
-    <tr>
-      <td>
-        <p-tableCheckbox [value]="transferRequest"></p-tableCheckbox>
-      </td>
-      <td>{{ transferRequest.userId }}</td>
-      <td>{{ transferRequest.commissionAccountNumber }}</td>
-      <td>{{ transferRequest.transferType }}</td>
-      <td>{{ transferRequest.amount | currency: transferRequest.currency }}</td>
-      <td>{{ transferRequest.currency }}</td>
-      <td>
-        <p-tag [value]="transferRequest.status" [severity]="getSeverity(transferRequest.status)"></p-tag>
-      </td>
-      <td>{{ transferRequest.documents?.length || 0 }}</td>
-      <td>
-        <div class="flex gap-2">
-          <p-button
-            icon="pi pi-pencil"
-            [rounded]="true"
-            [outlined]="true"
-            size="small"
-            (click)="editTransferRequest(transferRequest)"
-          ></p-button>
-          <p-button
-            icon="pi pi-trash"
-            severity="danger"
-            [rounded]="true"
-            [outlined]="true"
-            size="small"
-            (click)="deleteTransferRequest(transferRequest)"
-          ></p-button>
-          <p-button
-            icon="pi pi-eye"
-            severity="secondary"
-            [rounded]="true"
-            [outlined]="true"
-            size="small"
-            (click)="viewDetails(transferRequest.idTransferRequest)"
-          ></p-button>
-        </div>
-      </td>
-    </tr>
-  </ng-template>
-</p-table>
-
-<p-dialog
-  [(visible)]="transferRequestDialog"
-  [style]="{ width: '50vw' }"
-  header="Transfer Request Details"
-  [modal]="true"
-  [breakpoints]="{ '960px': '75vw', '640px': '90vw' }"
-  [draggable]="false"
-  [resizable]="false"
->
-  <form class="p-fluid grid">
-    <div class="field col-12 md:col-6">
-      <label for="userId">User ID</label>
-      <input
-        type="number"
-        pInputText
-        id="userId"
-        [(ngModel)]="transferRequest.userId"
-        name="userId"
-        required
-        min="1"
-      />
-      <small class="p-error" *ngIf="submitted && !transferRequest.userId">
-        User ID is required and must be positive.
-      </small>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="commissionAccountNumber">Commission Account</label>
-      <input
-        type="text"
-        pInputText
-        id="commissionAccountNumber"
-        [(ngModel)]="transferRequest.commissionAccountNumber"
-        name="commissionAccountNumber"
-        required
-      />
-      <small class="p-error" *ngIf="submitted && !transferRequest.commissionAccountNumber?.trim()">
-        Commission Account is required.
-      </small>
-      <small class="p-error" *ngIf="submitted && transferRequest.commissionAccountNumber && (transferRequest.commissionAccountNumber.length < 10 || transferRequest.commissionAccountNumber.length > 34)">
-        Commission Account must be 10-34 characters.
-      </small>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="commissionAccountType">Commission Account Type</label>
-      <p-dropdown
-        [(ngModel)]="transferRequest.commissionAccountType"
-        [options]="accountTypes"
-        optionLabel="label"
-        optionValue="value"
-        name="commissionAccountType"
-        placeholder="Select Type"
-        required
-      ></p-dropdown>
-      <small class="p-error" *ngIf="submitted && !transferRequest.commissionAccountType">
-        Commission Account Type is required.
-      </small>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="settlementAccountNumber">Settlement Account</label>
-      <input
-        type="text"
-        pInputText
-        id="settlementAccountNumber"
-        [(ngModel)]="transferRequest.settlementAccountNumber"
-        name="settlementAccountNumber"
-        required
-      />
-      <small class="p-error" *ngIf="submitted && !transferRequest.settlementAccountNumber?.trim()">
-        Settlement Account is required.
-      </small>
-      <small class="p-error" *ngIf="submitted && transferRequest.settlementAccountNumber && (transferRequest.settlementAccountNumber.length < 10 || transferRequest.settlementAccountNumber.length > 34)">
-        Settlement Account must be 10-34 characters.
-      </small>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="settlementAccountType">Settlement Account Type</label>
-      <p-dropdown
-        [(ngModel)]="transferRequest.settlementAccountType"
-        [options]="accountTypes"
-        optionLabel="label"
-        optionValue="value"
-        name="settlementAccountType"
-        placeholder="Select Type"
-        required
-      ></p-dropdown>
-      <small class="p-error" *ngIf="submitted && !transferRequest.settlementAccountType">
-        Settlement Account Type is required.
-      </small>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="transferType">Transfer Type</label>
-      <p-dropdown
-        [(ngModel)]="transferRequest.transferType"
-        [options]="transferTypes"
-        optionLabel="label"
-        optionValue="value"
-        name="transferType"
-        placeholder="Select Type"
-        required
-      ></p-dropdown>
-      <small class="p-error" *ngIf="submitted && !transferRequest.transferType">
-        Transfer Type is required.
-      </small>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="issueDate">Issue Date</label>
-      <input
-        type="date"
-        pInputText
-        id="issueDate"
-        [(ngModel)]="transferRequest.issueDate"
-        name="issueDate"
-        required
-      />
-      <small class="p-error" *ngIf="submitted && !transferRequest.issueDate">
-        Issue Date is required.
-      </small>
-      <small class="p-error" *ngIf="submitted && transferRequest.issueDate && isFutureDate(transferRequest.issueDate)">
-        Issue Date cannot be in the future.
-      </small>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="feeType">Fee Type</label>
-      <p-dropdown
-        [(ngModel)]="transferRequest.feeType"
-        [options]="feeTypes"
-        optionLabel="label"
-        optionValue="value"
-        name="feeType"
-        placeholder="Select Type"
-        required
-      ></p-dropdown>
-      <small class="p-error" *ngIf="submitted && !transferRequest.feeType">
-        Fee Type is required.
-      </small>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="currency">Currency</label>
-      <input
-        type="text"
-        pInputText
-        id="currency"
-        [(ngModel)]="transferRequest.currency"
-        name="currency"
-        required
-        pattern="[A-Z]{3}"
-      />
-      <small class="p-error" *ngIf="submitted && !isCurrencyValid(transferRequest.currency)">
-        Currency must be a 3-letter ISO 4217 code (e.g., TND, USD).
-      </small>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="amount">Amount</label>
-      <p-inputNumber
-        id="amount"
-        [(ngModel)]="transferRequest.amount"
-        mode="decimal"
-        [min]="0.001"
-        [maxFractionDigits]="3"
-        name="amount"
-        required
-      ></p-inputNumber>
-      <small class="p-error" *ngIf="submitted && !transferRequest.amount">
-        Amount is required.
-      </small>
-      <small class="p-error" *ngIf="submitted && transferRequest.amount <= 0.001">
-        Amount must be greater than 0.001.
-      </small>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="invoiceNumber">Invoice Number</label>
-      <input
-        type="text"
-        pInputText
-        id="invoiceNumber"
-        [(ngModel)]="transferRequest.invoiceNumber"
-        name="invoiceNumber"
-        [required]="transferRequest.transferType === 'COMMERCIAL'"
-      />
-      <small class="p-error" *ngIf="submitted && transferRequest.transferType === 'COMMERCIAL' && !transferRequest.invoiceNumber?.trim()">
-        Invoice Number is required for Commercial transfers.
-      </small>
-      <small class="p-error" *ngIf="submitted && transferRequest.invoiceNumber && transferRequest.invoiceNumber.length > 50">
-        Invoice Number must not exceed 50 characters.
-      </small>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="invoiceDate">Invoice Date</label>
-      <input
-        type="date"
-        pInputText
-        id="invoiceDate"
-        [(ngModel)]="transferRequest.invoiceDate"
-        name="invoiceDate"
-        [required]="transferRequest.transferType === 'COMMERCIAL'"
-      />
-      <small class="p-error" *ngIf="submitted && transferRequest.transferType === 'COMMERCIAL' && !transferRequest.invoiceDate">
-        Invoice Date is required for Commercial transfers.
-      </small>
-      <small class="p-error" *ngIf="submitted && transferRequest.invoiceDate && isFutureDate(transferRequest.invoiceDate)">
-        Invoice Date cannot be in the future.
-      </small>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="transferReason">Transfer Reason</label>
-      <input
-        type="text"
-        pInputText
-        id="transferReason"
-        [(ngModel)]="transferRequest.transferReason"
-        name="transferReason"
-        [required]="transferRequest.transferType === 'COMMERCIAL'"
-      />
-      <small class="p-error" *ngIf="submitted && transferRequest.transferType === 'COMMERCIAL' && !transferRequest.transferReason?.trim()">
-        Transfer Reason is required for Commercial transfers.
-      </small>
-      <small class="p-error" *ngIf="submitted && transferRequest.transferReason && transferRequest.transferReason.length > 255">
-        Transfer Reason must not exceed 255 characters.
-      </small>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="isNegotiation">Negotiation</label>
-      <p-checkbox
-        [(ngModel)]="transferRequest.isNegotiation"
-        name="isNegotiation"
-        binary="true"
-      ></p-checkbox>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="isTermNegotiation">Term Negotiation</label>
-      <p-checkbox
-        [(ngModel)]="transferRequest.isTermNegotiation"
-        name="isTermNegotiation"
-        binary="true"
-      ></p-checkbox>
-    </div>
-
-    <div class="field col-12 md:col-6">
-      <label for="isFinancing">Financing</label>
-      <p-checkbox
-        [(ngModel)]="transferRequest.isFinancing"
-        name="isFinancing"
-        binary="true"
-      ></p-checkbox>
-    </div>
-
-    <div class="field col-12">
-      <h4>Beneficiary Information</h4>
-      <div class="grid">
-        <div class="field col-12 md:col-6">
-          <label for="beneficiaryName">Name</label>
+<div class="card">
+  <!-- List Mode -->
+  <div *ngIf="mode === 'list'">
+    <p-toolbar>
+      <div class="p-toolbar-group-left">
+        <button pButton pRipple label="New" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
+        <button
+          pButton
+          pRipple
+          label="Delete"
+          icon="pi pi-trash"
+          class="p-button-danger"
+          [disabled]="!selectedTransferRequests?.length"
+          (click)="deleteSelectedTransferRequests()"
+        ></button>
+      </div>
+      <div class="p-toolbar-group-right">
+        <span class="p-input-icon-left">
+          <i class="pi pi-search"></i>
           <input
-            type="text"
             pInputText
-            id="beneficiaryName"
-            [(ngModel)]="transferRequest.beneficiary.name"
-            name="beneficiaryName"
-            required
+            type="text"
+            (input)="onGlobalFilter(dt, $event)"
+            placeholder="Keyword Search"
+            class="p-inputtext p-component"
           />
-          <small class="p-error" *ngIf="submitted && !transferRequest.beneficiary.name?.trim()">
-            Beneficiary name is required.
-          </small>
-          <small class="p-error" *ngIf="submitted && transferRequest.beneficiary.name && transferRequest.beneficiary.name.length > 100">
-            Beneficiary name must not exceed 100 characters.
-          </small>
-        </div>
+        </span>
+      </div>
+    </p-toolbar>
 
-        <div class="field col-12 md:col-6">
-          <label for="beneficiaryCountry">Country</label>
-          <input
-            type="text"
-            pInputText
-            id="beneficiaryCountry"
-            [(ngModel)]="transferRequest.beneficiary.country"
-            name="beneficiaryCountry"
-            required
-          />
-          <small class="p-error" *ngIf="submitted && !transferRequest.beneficiary.country?.trim()">
-            Country is required.
-          </small>
-          <small class="p-error" *ngIf="submitted && transferRequest.beneficiary.country && transferRequest.beneficiary.country.length > 100">
-            Country must not exceed 100 characters.
-          </small>
-        </div>
-
-        <div class="field col-12 md:col-6">
-          <label for="destinationBank">Destination Bank</label>
-          <input
-            type="text"
-            pInputText
-            id="destinationBank"
-            [(ngModel)]="transferRequest.beneficiary.destinationBank"
-            name="destinationBank"
-            required
-          />
-          <small class="p-error" *ngIf="submitted && !transferRequest.beneficiary.destinationBank?.trim()">
-            Destination bank is required.
-          </small>
-          <small class="p-error" *ngIf="submitted && transferRequest.beneficiary.destinationBank && transferRequest.beneficiary.destinationBank.length > 100">
-            Destination bank must not exceed 100 characters.
-          </small>
-        </div>
-
-        <div class="field col-12 md:col-6">
-          <label for="bankAccount">Bank Account</label>
-          <input
-            type="text"
-            pInputText
-            id="bankAccount"
-            [(ngModel)]="transferRequest.beneficiary.bankAccount"
-            name="bankAccount"
-          />
-          <small class="p-error" *ngIf="submitted && transferRequest.beneficiary.bankAccount && transferRequest.beneficiary.bankAccount.length > 34">
-            Bank Account must not exceed 34 characters.
-          </small>
+    <div class="grid">
+      <div class="col-12">
+        <div class="card">
+          <p-table
+            #dt
+            [value]="transferRequests()"
+            [rows]="10"
+            [paginator]="true"
+            [globalFilterFields]="['idTransferRequest', 'userId', 'commissionAccountNumber', 'transferType', 'amount', 'currency', 'status', 'beneficiary_name']"
+            [(selection)]="selectedTransferRequests"
+            [rowHover]="true"
+            dataKey="idTransferRequest"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+            [rowsPerPageOptions]="[5, 10, 25]"
+          >
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width: 3rem">
+                  <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                </th>
+                <th *ngFor="let col of cols" [pSortableColumn]="col.field">
+                  {{ col.header }}
+                  <p-sortIcon [field]="col.field"></p-sortIcon>
+                </th>
+                <th></th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-transferRequest>
+              <tr>
+                <td>
+                  <p-tableCheckbox [value]="transferRequest"></p-tableCheckbox>
+                </td>
+                <td>{{ transferRequest.idTransferRequest }}</td>
+                <td>{{ transferRequest.userId }}</td>
+                <td>{{ transferRequest.commissionAccountNumber }}</td>
+                <td>{{ transferRequest.transferType }}</td>
+                <td>{{ transferRequest.amount | currency: transferRequest.currency }}</td>
+                <td>{{ transferRequest.currency }}</td>
+                <td>{{ transferRequest.status }}</td>
+                <td>{{ transferRequest.beneficiary?.name }}</td>
+                <td>{{ transferRequest.documents?.length || 0 }}</td>
+                <td>
+                  <button
+                    pButton
+                    pRipple
+                    icon="pi pi-eye"
+                    class="p-button-rounded p-button-info mr-2"
+                    (click)="viewDetails(transferRequest.idTransferRequest)"
+                  ></button>
+                  <button
+                    pButton
+                    pRipple
+                    icon="pi pi-pencil"
+                    class="p-button-rounded p-button-warning mr-2"
+                    (click)="editTransferRequest(transferRequest)"
+                  ></button>
+                  <button
+                    pButton
+                    pRipple
+                    icon="pi pi-trash"
+                    class="p-button-rounded p-button-danger"
+                    (click)="deleteTransferRequest(transferRequest)"
+                  ></button>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td [attr.colspan]="cols.length + 2">No transfer requests found.</td>
+              </tr>
+            </ng-template>
+          </p-table>
         </div>
       </div>
     </div>
 
-    <div class="field col-12">
-      <label for="documents">Documents (Optional)</label>
-      <p-fileUpload
-        name="documents"
-        [multiple]="true"
-        accept="image/png,image/jpeg,application/pdf"
-        (onSelect)="onFileSelected($event)"
-        chooseLabel="Browse"
-        [maxFileSize]="10000000"
-      ></p-fileUpload>
+    <div class="grid">
+      <div class="col-12 md:col-4">
+        <div class="card p-fluid">
+          <h5>Search Filters</h5>
+          <div class="field">
+            <label for="searchUserId">User ID</label>
+            <p-inputNumber 
+              id="searchUserId" 
+              [(ngModel)]="searchCriteria.userId" 
+              [min]="0">
+            </p-inputNumber>
+          </div>
+          <div class="field">
+            <label for="searchCommissionAccount">Commission Account</label>
+            <input
+              pInputText
+              id="searchCommissionAccount"
+              [(ngModel)]="searchCriteria.commissionAccountNumber"
+              placeholder="Enter account number"
+              class="p-inputtext p-component"
+            />
+          </div>
+          <div class="field">
+            <label for="searchTransferType">Transfer Type</label>
+            <p-dropdown
+              id="searchTransferType"
+              [options]="transferTypes"
+              [(ngModel)]="searchCriteria.transferType"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select a transfer type"
+            ></p-dropdown>
+          </div>
+          <div class="field">
+            <label for="searchStatus">Status</label>
+            <p-dropdown
+              id="searchStatus"
+              [options]="statuses"
+              [(ngModel)]="searchCriteria.status"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select a status"
+            ></p-dropdown>
+          </div>
+          <div class="field">
+            <label for="searchAmount">Amount</label>
+            <p-inputNumber 
+              id="searchAmount" 
+              [(ngModel)]="searchCriteria.amount" 
+              [min]="0" 
+              mode="currency" 
+              currency="TND">
+            </p-inputNumber>
+          </div>
+          <div class="field">
+            <button pButton pRipple label="Search" icon="pi pi-search" class="p-button-primary mr-2" (click)="onSearch()"></button>
+            <button pButton pRipple label="Clear" icon="pi pi-times" class="p-button-secondary" (click)="clearSearch()"></button>
+          </div>
+        </div>
+      </div>
     </div>
-  </form>
+  </div>
 
-  <ng-template pTemplate="footer">
-    <p-button
-      label="Cancel"
-      icon="pi pi-times"
-      (click)="hideDialog()"
-      styleClass="p-button-text"
-    ></p-button>
-    <p-button
-      label="Save"
-      icon="pi pi-check"
-      (click)="saveTransferRequest()"
-      [loading]="isSaving"
-    ></p-button>
-  </ng-template>
-</p-dialog>
+  <!-- New/Edit Mode -->
+  <div *ngIf="mode === 'new' || mode === 'edit'" class="card">
+    <p-toolbar>
+      <div class="p-toolbar-group-left">
+        <h3>{{ mode === 'new' ? 'New Transfer Request' : 'Edit Transfer Request' }}</h3>
+      </div>
+      <div class="p-toolbar-group-right">
+        <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-success mr-2" [disabled]="isSaving" (click)="saveTransferRequest()"></button>
+        <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-secondary" (click)="hideDialog()"></button>
+      </div>
+    </p-toolbar>
 
-<p-confirmDialog></p-confirmDialog>
+    <div class="grid p-fluid">
+      <!-- Left Column -->
+      <div class="col-12 md:col-6">
+        <div class="field">
+          <label for="userId">User ID *</label>
+          <p-inputNumber 
+            id="userId" 
+            [(ngModel)]="transferRequest.userId" 
+            [min]="1" 
+            [required]="true">
+          </p-inputNumber>
+        </div>
+        <div class="field">
+          <label for="commissionAccountNumber">Commission Account Number *</label>
+          <input
+            pInputText
+            id="commissionAccountNumber"
+            [(ngModel)]="transferRequest.commissionAccountNumber"
+            [minlength]="10"
+            [maxlength]="34"
+            required
+            class="p-inputtext p-component"
+          />
+        </div>
+        <div class="field">
+          <label for="commissionAccountType">Commission Account Type *</label>
+          <p-dropdown
+            id="commissionAccountType"
+            [options]="accountTypes"
+            [(ngModel)]="transferRequest.commissionAccountType"
+            optionLabel="label"
+            optionValue="value"
+            required
+          ></p-dropdown>
+        </div>
+        <div class="field">
+          <label for="settlementAccountNumber">Settlement Account Number *</label>
+          <input
+            pInputText
+            id="settlementAccountNumber"
+            [(ngModel)]="transferRequest.settlementAccountNumber"
+            [minlength]="10"
+            [maxlength]="34"
+            required
+            class="p-inputtext p-component"
+          />
+        </div>
+        <div class="field">
+          <label for="settlementAccountType">Settlement Account Type *</label>
+          <p-dropdown
+            id="settlementAccountType"
+            [options]="accountTypes"
+            [(ngModel)]="transferRequest.settlementAccountType"
+            optionLabel="label"
+            optionValue="value"
+            required
+          ></p-dropdown>
+        </div>
+        <div class="field">
+          <label for="transferType">Transfer Type *</label>
+          <p-dropdown
+            id="transferType"
+            [options]="transferTypes"
+            [(ngModel)]="transferRequest.transferType"
+            optionLabel="label"
+            optionValue="value"
+            required
+            (ngModelChange)="onTransferTypeChange()"
+          ></p-dropdown>
+        </div>
+        <div class="field">
+          <label for="issueDate">Issue Date *</label>
+          <input
+            pInputText
+            id="issueDate" 
+            [(ngModel)]="transferRequest.issueDate" 
+            type="date" 
+            required
+            class="p-inputtext p-component"
+          />
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="col-12 md:col-6">
+        <div class="field">
+          <label for="feeType">Fee Type *</label>
+          <p-dropdown
+            id="feeType"
+            [options]="feeTypes"
+            [(ngModel)]="transferRequest.feeType"
+            optionLabel="label"
+            optionValue="value"
+            required
+          ></p-dropdown>
+        </div>
+        <div class="field">
+          <label for="currency">Currency *</label>
+          <input
+            pInputText
+            id="currency" 
+            [(ngModel)]="transferRequest.currency" 
+            [maxlength]="3" 
+            required
+            class="p-inputtext p-component"
+          />
+        </div>
+        <div class="field">
+          <label for="amount">Amount *</label>
+          <p-inputNumber 
+            id="amount" 
+            [(ngModel)]="transferRequest.amount" 
+            [min]="0.001" 
+            mode="currency" 
+            currency="TND" 
+            required>
+          </p-inputNumber>
+        </div>
+        <div class="field" *ngIf="transferRequest.transferType === 'COMMERCIAL'">
+          <label for="invoiceNumber">Invoice Number *</label>
+          <input
+            pInputText
+            id="invoiceNumber"
+            [(ngModel)]="transferRequest.invoiceNumber"
+            [maxlength]="50"
+            required
+            class="p-inputtext p-component"
+          />
+        </div>
+        <div class="field" *ngIf="transferRequest.transferType === 'COMMERCIAL'">
+          <label for="invoiceDate">Invoice Date *</label>
+          <input
+            pInputText
+            id="invoiceDate" 
+            [(ngModel)]="transferRequest.invoiceDate" 
+            type="date" 
+            required
+            class="p-inputtext p-component"
+          />
+        </div>
+        <div class="field" *ngIf="transferRequest.transferType === 'COMMERCIAL'">
+          <label for="transferReason">Transfer Reason *</label>
+          <input
+            pInputText
+            id="transferReason"
+            [(ngModel)]="transferRequest.transferReason"
+            [maxlength]="255"
+            required
+            class="p-inputtext p-component"
+          />
+        </div>
+        <div class="field">
+          <p-checkbox
+            [(ngModel)]="transferRequest.isNegotiation"
+            [binary]="true"
+            label="Negotiation"
+          ></p-checkbox>
+          <p-checkbox
+            [(ngModel)]="transferRequest.isTermNegotiation"
+            [binary]="true"
+            label="Term Negotiation"
+          ></p-checkbox>
+          <p-checkbox
+            [(ngModel)]="transferRequest.isFinancing"
+            [binary]="true"
+            label="Financing"
+          ></p-checkbox>
+        </div>
+      </div>
+
+      <!-- Beneficiary Information Section -->
+      <div class="col-12">
+        <h5>Beneficiary Information</h5>
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-6">
+            <div class="field">
+              <label for="beneficiaryName">Beneficiary Name *</label>
+              <input
+                pInputText
+                id="beneficiaryName" 
+                [(ngModel)]="transferRequest.beneficiary.name" 
+                [maxlength]="100" 
+                required
+                placeholder="Enter beneficiary name"
+                class="p-inputtext p-component"
+              />
+            </div>
+            <div class="field">
+              <label for="beneficiaryCountry">Country *</label>
+              <input
+                pInputText
+                id="beneficiaryCountry" 
+                [(ngModel)]="transferRequest.beneficiary.country" 
+                [maxlength]="100" 
+                required
+                placeholder="Enter country"
+                class="p-inputtext p-component"
+              />
+            </div>
+          </div>
+          <div class="col-12 md:col-6">
+            <div class="field">
+              <label for="beneficiaryDestinationBank">Destination Bank *</label>
+              <input
+                pInputText
+                id="beneficiaryDestinationBank" 
+                [(ngModel)]="transferRequest.beneficiary.destinationBank" 
+                [maxlength]="100" 
+                required
+                placeholder="Enter destination bank"
+                class="p-inputtext p-component"
+              />
+            </div>
+            <div class="field">
+              <label for="beneficiaryBankAccount">Bank Account</label>
+              <input
+                pInputText
+                id="beneficiaryBankAccount" 
+                [(ngModel)]="transferRequest.beneficiary.bankAccount" 
+                [maxlength]="34"
+                placeholder="Enter bank account (optional)"
+                class="p-inputtext p-component"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Documents Section -->
+        <div class="field">
+          <label>Documents</label>
+          <p-fileUpload
+            [multiple]="true"
+            [maxFileSize]="1000000"
+            accept="application/pdf,image/*"
+            (onSelect)="onFileSelected($event)"
+            [customUpload]="true"
+            [files]="selectedFiles"
+          ></p-fileUpload>
+          <div *ngFor="let doc of transferRequest.documents" class="mt-2">
+            <span>{{ doc.fileName }}</span>
+            <button
+              pButton
+              pRipple
+              icon="pi pi-trash"
+              class="p-button-rounded p-button-danger p-button-sm ml-2"
+              (click)="deleteDocument(doc.idDocument)"
+            ></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details Mode -->
+  <div *ngIf="mode === 'details'" class="card">
+    <p-toolbar>
+      <div class="p-toolbar-group-left">
+        <h3>Transfer Request Details</h3>
+      </div>
+      <div class="p-toolbar-group-right">
+        <button
+          pButton
+          pRipple
+          label="Edit"
+          icon="pi pi-pencil"
+          class="p-button-info mr-2"
+          [disabled]="isLoading"
+          (click)="editTransferRequest(transferRequest)"
+        ></button>
+        <button
+          pButton
+          pRipple
+          label="Back"
+          icon="pi pi-arrow-left"
+          class="p-button-secondary"
+          (click)="goBack()"
+        ></button>
+      </div>
+    </p-toolbar>
+
+    <div class="grid p-fluid" *ngIf="!isLoading; else loadingTemplate">
+      <div class="col-12 md:col-6">
+        <div class="field">
+          <label>User ID</label>
+          <p>{{ transferRequest.userId }}</p>
+        </div>
+        <div class="field">
+          <label>Commission Account Number</label>
+          <p>{{ transferRequest.commissionAccountNumber }}</p>
+        </div>
+        <div class="field">
+          <label>Commission Account Type</label>
+          <p>{{ transferRequest.commissionAccountType }}</p>
+        </div>
+        <div class="field">
+          <label>Settlement Account Number</label>
+          <p>{{ transferRequest.settlementAccountNumber }}</p>
+        </div>
+        <div class="field">
+          <label>Settlement Account Type</label>
+          <p>{{ transferRequest.settlementAccountType }}</p>
+        </div>
+        <div class="field">
+          <label>Transfer Type</label>
+          <p>{{ transferRequest.transferType }}</p>
+        </div>
+        <div class="field">
+          <label>Issue Date</label>
+          <p>{{ transferRequest.issueDate }}</p>
+        </div>
+      </div>
+      <div class="col-12 md:col-6">
+        <div class="field">
+          <label>Fee Type</label>
+          <p>{{ transferRequest.feeType }}</p>
+        </div>
+        <div class="field">
+          <label>Currency</label>
+          <p>{{ transferRequest.currency }}</p>
+        </div>
+        <div class="field">
+          <label>Amount</label>
+          <p>{{ transferRequest.amount | currency: transferRequest.currency }}</p>
+        </div>
+        <div class="field" *ngIf="transferRequest.transferType === 'COMMERCIAL'">
+          <label>Invoice Number</label>
+          <p>{{ transferRequest.invoiceNumber }}</p>
+        </div>
+        <div class="field" *ngIf="transferRequest.transferType === 'COMMERCIAL'">
+          <label>Invoice Date</label>
+          <p>{{ transferRequest.invoiceDate }}</p>
+        </div>
+        <div class="field" *ngIf="transferRequest.transferType === 'COMMERCIAL'">
+          <label>Transfer Reason</label>
+          <p>{{ transferRequest.transferReason }}</p>
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <p-tag [severity]="getSeverity(transferRequest.status ?? 'PENDING')">{{ transferRequest.status ?? 'PENDING' }}</p-tag>
+        </div>
+      </div>
+      <div class="col-12">
+        <h5>Beneficiary Information</h5>
+        <div class="field">
+          <label>Beneficiary Name</label>
+          <p>{{ transferRequest.beneficiary.name }}</p>
+        </div>
+        <div class="field">
+          <label>Country</label>
+          <p>{{ transferRequest.beneficiary.country }}</p>
+        </div>
+        <div class="field">
+          <label>Destination Bank</label>
+          <p>{{ transferRequest.beneficiary.destinationBank }}</p>
+        </div>
+        <div class="field">
+          <label>Bank Account</label>
+          <p>{{ transferRequest.beneficiary.bankAccount }}</p>
+        </div>
+        <div class="field">
+          <label>Documents</label>
+          <div *ngFor="let doc of transferRequest.documents" class="mt-2">
+            <span>{{ doc.fileName }}</span>
+            <button
+              pButton
+              pRipple
+              icon="pi pi-trash"
+              class="p-button-rounded p-button-danger p-button-sm ml-2"
+              (click)="deleteDocument(doc.idDocument)"
+            ></button>
+          </div>
+        </div>
+      </div>
+      <div class="col-12" *ngIf="canPerformActions()">
+        <div class="field">
+          <button
+            pButton
+            pRipple
+            label="Validate"
+            icon="pi pi-check"
+            class="p-button-success mr-2"
+            [disabled]="isLoading"
+            (click)="validateTransferRequest()"
+          ></button>
+          <button
+            pButton
+            pRipple
+            label="Reject"
+            icon="pi pi-times"
+            class="p-button-danger mr-2"
+            [disabled]="isLoading"
+            (click)="rejectTransferRequest()"
+          ></button>
+          <button
+            pButton
+            pRipple
+            label="Request Info"
+            icon="pi pi-info-circle"
+            class="p-button-warning"
+            [disabled]="isLoading"
+            (click)="requestAdditionalInfo()"
+          ></button>
+        </div>
+      </div>
+    </div>
+    <ng-template #loadingTemplate>
+      <p-progressSpinner></p-progressSpinner>
+    </ng-template>
+  </div>
+</div>
+
+<p-toast></p-toast>
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
