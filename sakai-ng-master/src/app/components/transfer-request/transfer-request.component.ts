@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef, ViewChild, signal } from "@angular/core"
 import { ActivatedRoute, Router } from "@angular/router" // Fixed: removed 'type'
-import { TransferRequestService } from "../../../services/transfer-request.service"
+import { TransferRequestService } from "../../services/transfer-request.service"
 import { MessageService, ConfirmationService } from "primeng/api"
 import { Table } from "primeng/table"
 import { CommonModule } from "@angular/common"
@@ -9,6 +9,7 @@ import { ButtonModule } from "primeng/button"
 import { RippleModule } from "primeng/ripple"
 import { ToastModule } from "primeng/toast"
 import { ToolbarModule } from "primeng/toolbar"
+import { TooltipModule } from "primeng/tooltip"; // Add this import
 import { InputTextModule } from "primeng/inputtext"
 import { InputNumberModule } from "primeng/inputnumber"
 import { DialogModule } from "primeng/dialog"
@@ -21,9 +22,8 @@ import { DropdownModule } from "primeng/dropdown" // Back to DropdownModule
 import { CheckboxModule } from "primeng/checkbox"
 import { TableModule } from "primeng/table"
 import { lastValueFrom } from "rxjs"
-import { TransferRequest } from "../../../models/transfer-request"
+import { TransferRequest } from "../../models/transfer-request"
 import { ProgressSpinnerModule } from "primeng/progressspinner"
-
 
 interface Column {
   field: string
@@ -46,6 +46,7 @@ interface ExportColumn {
     RippleModule,
     ToastModule,
     DropdownModule, // Back to DropdownModule
+    TooltipModule, // Add this to the imports array
     ToolbarModule,
     InputTextModule,
     InputNumberModule,
@@ -72,14 +73,22 @@ export class TransferRequestComponent implements OnInit {
   selectedFiles: File[] = []
   isSaving = false
   isLoading = false
-
+  
+  // Enhanced search criteria with date fields
   searchCriteria = {
     userId: null as number | null,
     commissionAccountNumber: "",
     transferType: null as string | null,
     status: null as string | null,
     amount: null as number | null,
+    dateFrom: null as string | null,
+    dateTo: null as string | null,
   }
+
+  // Enhanced search properties
+  filtersExpanded = false
+  quickFilter = ''
+  isSearching = false
 
   transferRequest: TransferRequest = this.createEmptyTransferRequest()
 
@@ -216,12 +225,10 @@ export class TransferRequestComponent implements OnInit {
   openNew() {
     this.mode = "new"
     console.log("Mode set to:", this.mode)
-
     // Create a completely new object reference
     this.transferRequest = this.createEmptyTransferRequest()
     this.submitted = false
     this.selectedFiles = []
-
     // Force change detection after a short delay to ensure proper rendering
     setTimeout(() => {
       this.cdr.detectChanges()
@@ -240,7 +247,6 @@ export class TransferRequestComponent implements OnInit {
       next: (data) => {
         console.log("=== RAW API RESPONSE ===")
         console.log("Full response:", JSON.stringify(data, null, 2))
-
         if (!data || Object.keys(data).length === 0) {
           console.error("No valid data received from API")
           this.showError("Transfer request not found or empty")
@@ -248,7 +254,6 @@ export class TransferRequestComponent implements OnInit {
           this.router.navigate(["/transfer-requests"])
           return
         }
-
         this.transferRequest = {
           idTransferRequest: data.idTransferRequest || this.transferRequestId,
           userId: data.userId || 0,
@@ -279,7 +284,6 @@ export class TransferRequestComponent implements OnInit {
           },
           documents: data.documents || [],
         }
-
         // Load documents separately
         this.transferRequestService.getDocuments(this.transferRequestId).subscribe({
           next: (documents) => {
@@ -295,7 +299,6 @@ export class TransferRequestComponent implements OnInit {
             this.cdr.detectChanges()
           },
         })
-
         console.log("=== PROCESSED TRANSFER REQUEST ===")
         console.log("Final transferRequest:", JSON.stringify(this.transferRequest, null, 2))
         this.cdr.detectChanges()
@@ -384,7 +387,6 @@ export class TransferRequestComponent implements OnInit {
     this.submitted = true
     if (!this.validateForm()) return
     this.isSaving = true
-
     try {
       if (this.mode === "edit") {
         await this.updateTransferRequest()
@@ -400,7 +402,6 @@ export class TransferRequestComponent implements OnInit {
 
   private async createTransferRequest() {
     let result: TransferRequest
-
     if (this.selectedFiles.length > 0 && this.selectedFiles[0]) {
       result = await lastValueFrom(
         this.transferRequestService.createTransferRequestWithDocument(this.transferRequest, this.selectedFiles[0]),
@@ -408,11 +409,9 @@ export class TransferRequestComponent implements OnInit {
     } else {
       result = await lastValueFrom(this.transferRequestService.createTransferRequest(this.transferRequest))
     }
-
     if (result.idTransferRequest && this.selectedFiles.length > 1) {
       await this.uploadDocumentsSequentially(result.idTransferRequest)
     }
-
     this.showSuccess("Transfer request created successfully")
     this.mode = "list"
     this.loadTransferRequests()
@@ -422,12 +421,10 @@ export class TransferRequestComponent implements OnInit {
     if (!this.transferRequest || !this.transferRequest.idTransferRequest) {
       throw new Error("Transfer request is null or missing ID")
     }
-
     // Log the data being sent for debugging
     console.log("=== UPDATE REQUEST DATA ===")
     console.log("Transfer Request ID:", this.transferRequest.idTransferRequest)
     console.log("Transfer Request Data:", JSON.stringify(this.transferRequest, null, 2))
-
     // Ensure beneficiary object is properly structured
     const updateData = {
       userId: this.transferRequest.userId,
@@ -455,10 +452,8 @@ export class TransferRequestComponent implements OnInit {
         bankAccount: this.transferRequest.beneficiary.bankAccount || "",
       },
     }
-
     console.log("=== FORMATTED UPDATE DATA ===")
     console.log("Update payload:", JSON.stringify(updateData, null, 2))
-
     try {
       const result = await lastValueFrom(
         this.transferRequestService.updateTransferRequest(this.transferRequest.idTransferRequest, {
@@ -473,15 +468,12 @@ export class TransferRequestComponent implements OnInit {
           },
         }),
       )
-
       if (!result) {
         throw new Error("Failed to update transfer request")
       }
-
       if (this.selectedFiles.length > 0) {
         await this.uploadDocumentsSequentially(this.transferRequest.idTransferRequest)
       }
-
       this.showSuccess("Transfer request updated successfully")
       this.mode = "list"
       this.router.navigate(["/transfer-requests"])
@@ -495,7 +487,6 @@ export class TransferRequestComponent implements OnInit {
 
   private async uploadDocumentsSequentially(transferRequestId: number): Promise<void> {
     const filesToUpload = this.mode === "new" ? this.selectedFiles.slice(1) : this.selectedFiles
-
     for (const file of filesToUpload) {
       try {
         console.log(
@@ -503,7 +494,6 @@ export class TransferRequestComponent implements OnInit {
         )
         const response = await lastValueFrom(this.transferRequestService.uploadDocument(transferRequestId, file))
         console.log(`Upload response for ${file.name}:`, response)
-
         // Add temporary document for immediate feedback
         const tempDocument = {
           idDocument: -1,
@@ -514,10 +504,8 @@ export class TransferRequestComponent implements OnInit {
           fileExtension: file.name.split(".").pop() || "",
           createElement: () => null,
         }
-
         if (!this.transferRequest.documents) this.transferRequest.documents = []
         this.transferRequest.documents.push(tempDocument as any)
-
         this.showSuccess(`Document "${file.name}" uploaded successfully`)
       } catch (error) {
         this.showError(`Failed to upload "${file.name}"`, error)
@@ -527,7 +515,6 @@ export class TransferRequestComponent implements OnInit {
         )
       }
     }
-
     this.selectedFiles = []
     this.cdr.detectChanges()
   }
@@ -537,7 +524,6 @@ export class TransferRequestComponent implements OnInit {
       this.showError("Transfer request data is not loaded")
       return false
     }
-
     // Ensure beneficiary object exists
     if (!this.transferRequest.beneficiary) {
       this.transferRequest.beneficiary = {
@@ -548,13 +534,11 @@ export class TransferRequestComponent implements OnInit {
         bankAccount: "",
       }
     }
-
     // Clean up empty strings for optional fields
     if (!this.transferRequest.invoiceNumber) this.transferRequest.invoiceNumber = ""
     if (!this.transferRequest.invoiceDate) this.transferRequest.invoiceDate = ""
     if (!this.transferRequest.transferReason) this.transferRequest.transferReason = ""
     if (!this.transferRequest.beneficiary.bankAccount) this.transferRequest.beneficiary.bankAccount = ""
-
     const requiredFields = [
       { field: this.transferRequest.userId > 0, message: "User ID is required and must be positive" },
       { field: this.transferRequest.commissionAccountNumber?.trim(), message: "Commission Account is required" },
@@ -607,7 +591,6 @@ export class TransferRequestComponent implements OnInit {
         message: "Bank Account must not exceed 34 characters",
       },
     ]
-
     if (this.transferRequest.transferType === "COMMERCIAL") {
       const commercialFields = [
         {
@@ -639,14 +622,12 @@ export class TransferRequestComponent implements OnInit {
         }
       }
     }
-
     for (const { field, message } of requiredFields) {
       if (!field) {
         this.showError(message)
         return false
       }
     }
-
     return true
   }
 
@@ -677,6 +658,8 @@ export class TransferRequestComponent implements OnInit {
       transferType: null,
       status: null,
       amount: null,
+      dateFrom: null,
+      dateTo: null,
     }
     this.loadTransferRequests()
   }
@@ -841,4 +824,82 @@ export class TransferRequestComponent implements OnInit {
       life: 3000,
     })
   }
+
+  // Enhanced search methods
+  toggleFilters() {
+    this.filtersExpanded = !this.filtersExpanded
+  }
+
+  getActiveFiltersCount(): number {
+    let count = 0
+    if (this.searchCriteria.userId) count++
+    if (this.searchCriteria.commissionAccountNumber) count++
+    if (this.searchCriteria.transferType) count++
+    if (this.searchCriteria.status) count++
+    if (this.searchCriteria.amount) count++
+    if (this.searchCriteria.dateFrom) count++
+    if (this.searchCriteria.dateTo) count++
+    return count
+  }
+
+  setQuickFilter(filter: string) {
+    this.quickFilter = this.quickFilter === filter ? '' : filter
+    
+    // Apply quick filter logic
+    switch (filter) {
+      case 'pending':
+        this.searchCriteria.status = 'PENDING'
+        break
+      case 'validated':
+        this.searchCriteria.status = 'VALIDATED'
+        break
+      case 'commercial':
+        this.searchCriteria.transferType = 'COMMERCIAL'
+        break
+      case 'today':
+        const today = new Date().toISOString().split('T')[0]
+        this.searchCriteria.dateFrom = today
+        this.searchCriteria.dateTo = today
+        break
+    }
+    
+    if (this.quickFilter === '') {
+      this.clearAllFilters()
+    }
+    
+  }
+
+  clearAllFilters() {
+  this.searchCriteria = {
+    userId: null,
+    commissionAccountNumber: "",
+    transferType: null,
+    status: null,
+    amount: null,
+    dateFrom: null,
+    dateTo: null,
+  }
+  this.quickFilter = ''
+  
+  // Automatically reload the data with cleared filters
+  this.loadTransferRequests()
+}
+
+  applyFilters() {
+    this.isSearching = true
+    // Your search logic here
+    setTimeout(() => {
+      this.onSearch()
+      this.isSearching = false
+    }, 1000)
+  }
+
+  getTotalResults(): number {
+    return this.transferRequests()?.length || 0
+  }
+   isEditDisabled(status: string | undefined): boolean {
+  console.log("Status checked:", status);
+  return status === "VALIDATED" || status === "REJECTED" || status === "COMPLETED";
+}
+
 }

@@ -1,0 +1,611 @@
+/* Enhanced Transfer Request Component Styles - Complete Updated Version */
+
+/* Card enhancements */
+.enhanced-card {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden;
+}
+
+.enhanced-card-header {
+  @apply bg-white dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-600;
+}
+
+.enhanced-card-body {
+  @apply p-6;
+}
+
+/* Toolbar improvements */
+.enhanced-toolbar {
+  @apply bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4;
+}
+
+.toolbar-left {
+  @apply flex flex-wrap items-center gap-3;
+}
+
+.toolbar-right {
+  @apply flex items-center gap-3 w-full sm:w-auto;
+}
+
+/* Enhanced search input */
+.enhanced-search {
+  @apply relative min-w-[280px];
+}
+
+.enhanced-search input {
+  @apply pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+}
+
+.enhanced-search .pi-search {
+  @apply absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500;
+}
+
+/* Enhanced Search Filters Styles */
+.search-filters-header {
+  @apply px-6 py-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-toggle-btn {
+  @apply w-8 h-8 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200;
+}
+
+.search-toggle-btn.expanded {
+  @apply bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700;
+}
+
+.search-filters-content {
+  @apply overflow-hidden transition-all duration-300 ease-in-out;
+  max-height: 0;
+  opacity: 0;
+}
+
+.search-filters-content.expanded {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+.enhanced-form-label {
+  @apply flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
+}
+
+.enhanced-input-wrapper {
+  @apply relative;
+}
+
+.enhanced-input {
+  @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500;
+}
+
+.enhanced-dropdown {
+  @apply w-full;
+}
+
+.quick-filter-btn {
+  @apply inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200;
+}
+
+.quick-filter-btn.active {
+  @apply bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700;
+}
+
+.enhanced-btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 border-0 outline-none inline-flex items-center;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.enhanced-btn-secondary {
+  @apply bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium px-6 py-3 rounded-lg transition-colors duration-200 border-0 outline-none inline-flex items-center;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Button enhancements - FIXED TO REMOVE BORDERS */
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-lg transition-colors duration-200 border-0 outline-none;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.btn-success {
+  @apply bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2.5 rounded-lg transition-colors duration-200 border-0 outline-none;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.btn-danger {
+  @apply bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2.5 rounded-lg transition-colors duration-200 border-0 outline-none;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.btn-warning {
+  @apply bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2.5 rounded-lg transition-colors duration-200 border-0 outline-none;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.btn-secondary {
+  @apply bg-gray-600 hover:bg-gray-700 text-white font-medium px-4 py-2.5 rounded-lg transition-colors duration-200 border-0 outline-none;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.btn-info {
+  @apply bg-cyan-600 hover:bg-cyan-700 text-white font-medium px-4 py-2.5 rounded-lg transition-colors duration-200 border-0 outline-none;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Override PrimeNG button defaults */
+.p-button {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.p-button:enabled:hover {
+  box-shadow: none !important;
+}
+
+.p-button:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* REDESIGNED Available Actions Section - Clean and Professional */
+.actions-section-redesigned {
+  @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700;
+}
+
+.actions-header-redesigned {
+  @apply px-6 py-4 border-b border-gray-200 dark:border-gray-700;
+}
+
+.actions-title-redesigned {
+  @apply text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-1;
+}
+
+.actions-subtitle {
+  @apply text-sm text-gray-500 dark:text-gray-400;
+}
+
+.actions-content-redesigned {
+  @apply p-6;
+}
+
+.actions-grid-redesigned {
+  @apply grid grid-cols-1 sm:grid-cols-3 gap-4;
+}
+
+/* REDESIGNED Action Buttons - Clean and Subtle */
+.action-button-redesigned {
+  @apply relative flex items-center gap-4 p-4 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed bg-white dark:bg-gray-800;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.action-button-redesigned:hover:not(:disabled) {
+  @apply transform -translate-y-1 shadow-md;
+}
+
+.action-button-redesigned:active:not(:disabled) {
+  @apply transform translate-y-0;
+}
+
+.action-icon-redesigned {
+  @apply w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0;
+}
+
+.action-content-redesigned {
+  @apply flex flex-col items-start text-left;
+}
+
+.action-title-redesigned {
+  @apply font-semibold text-sm;
+}
+
+.action-description-redesigned {
+  @apply text-xs opacity-75 mt-0.5;
+}
+
+/* Validate Button - FIXED - Light Green Hover */
+.action-validate-redesigned {
+  @apply border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700;
+}
+
+.action-validate-redesigned:hover {
+  @apply bg-green-50 dark:bg-green-900/10 !important;
+}
+
+.action-validate-redesigned .action-icon-redesigned {
+  @apply bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400;
+}
+
+.action-validate-redesigned .action-title-redesigned {
+  @apply text-green-700 dark:text-green-300;
+}
+
+.action-validate-redesigned .action-description-redesigned {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.action-validate-redesigned:focus {
+  @apply ring-green-500;
+}
+
+/* Reject Button - FIXED - Use Red Hover Instead of Green */
+.action-reject-redesigned {
+  @apply border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700;
+}
+
+.action-reject-redesigned:hover {
+  @apply bg-red-50 dark:bg-red-900/10 !important;
+}
+
+.action-reject-redesigned .action-icon-redesigned {
+  @apply bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400;
+}
+
+.action-reject-redesigned .action-title-redesigned {
+  @apply text-red-700 dark:text-red-300;
+}
+
+.action-reject-redesigned .action-description-redesigned {
+  @apply text-red-600 dark:text-red-400;
+}
+
+.action-reject-redesigned:focus {
+  @apply ring-red-500;
+}
+
+/* Request Info Button - FIXED - Light Amber Hover */
+.action-request-info-redesigned {
+  @apply border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700;
+}
+
+.action-request-info-redesigned:hover {
+  @apply bg-amber-50 dark:bg-amber-900/10 !important;
+}
+
+.action-request-info-redesigned .action-icon-redesigned {
+  @apply bg-amber-100 dark:bg-amber-900 text-amber-600 dark:text-amber-400;
+}
+
+.action-request-info-redesigned .action-title-redesigned {
+  @apply text-amber-700 dark:text-amber-300;
+}
+
+.action-request-info-redesigned .action-description-redesigned {
+  @apply text-amber-600 dark:text-amber-400;
+}
+
+.action-request-info-redesigned:focus {
+  @apply ring-amber-500;
+}
+
+/* Loading State */
+.action-button-redesigned.loading {
+  @apply cursor-wait opacity-75;
+}
+
+.action-button-redesigned.loading .action-icon-redesigned {
+  @apply bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400;
+}
+
+/* Disabled State */
+.action-button-redesigned:disabled {
+  @apply bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-not-allowed transform-none;
+}
+
+.action-button-redesigned:disabled .action-icon-redesigned {
+  @apply bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500;
+}
+
+.action-button-redesigned:disabled .action-title-redesigned,
+.action-button-redesigned:disabled .action-description-redesigned {
+  @apply text-gray-400 dark:text-gray-500;
+}
+
+/* Hide old action button styles to avoid conflicts */
+.actions-section,
+.action-button,
+.action-validate,
+.action-reject,
+.action-request-info {
+  display: none !important;
+}
+
+/* Form enhancements */
+.form-section {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6;
+}
+
+.form-section-title {
+  @apply text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 pb-2 border-b border-gray-200 dark:border-gray-600;
+}
+
+.form-field {
+  @apply mb-4;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
+}
+
+.form-input {
+  @apply w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+}
+
+.form-required::after {
+  @apply text-red-500 ml-1;
+  content: "*";
+}
+
+/* Table enhancements */
+.enhanced-table-container {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden;
+}
+
+.table-header {
+  @apply bg-gray-50 dark:bg-gray-700;
+}
+
+.table-row {
+  @apply hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150;
+}
+
+.table-cell {
+  @apply px-4 py-3 text-sm text-gray-900 dark:text-gray-100;
+}
+
+.table-header-cell {
+  @apply px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider;
+}
+
+/* Status badges */
+.status-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.status-pending {
+  @apply bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200;
+}
+
+.status-validated {
+  @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+}
+
+.status-rejected {
+  @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+}
+
+.status-info-requested {
+  @apply bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200;
+}
+
+.status-completed {
+  @apply bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200;
+}
+
+/* Action buttons */
+.action-buttons {
+  @apply flex items-center gap-2;
+}
+
+.action-btn {
+  @apply p-2 rounded-full transition-all duration-200 hover:scale-105;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.action-btn-view {
+  @apply bg-blue-100 hover:bg-blue-200 text-blue-600 dark:bg-blue-900 dark:hover:bg-blue-800 dark:text-blue-400;
+}
+
+.action-btn-edit {
+  @apply bg-amber-100 hover:bg-amber-200 text-amber-600 dark:bg-amber-900 dark:hover:bg-amber-800 dark:text-amber-400;
+}
+
+.action-btn-delete {
+  @apply bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-900 dark:hover:bg-red-800 dark:text-red-400;
+}
+
+/* Loading states */
+.loading-overlay {
+  @apply absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-75 dark:bg-opacity-75 flex items-center justify-center z-10;
+}
+
+.loading-spinner {
+  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600;
+}
+
+/* File upload enhancements */
+.file-upload-area {
+  @apply border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-blue-500 dark:hover:border-blue-400 transition-colors duration-200;
+}
+
+.file-item {
+  @apply flex items-center justify-between bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-2;
+}
+
+.file-name {
+  @apply text-sm text-gray-700 dark:text-gray-300 truncate flex-1;
+}
+
+/* Checkbox enhancements */
+.enhanced-checkbox {
+  @apply flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150;
+}
+
+.checkbox-label {
+  @apply text-sm font-medium text-gray-700 dark:text-gray-300;
+}
+
+/* Details view enhancements */
+.details-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+}
+
+.detail-item {
+  @apply bg-gray-50 dark:bg-gray-700 rounded-lg p-4;
+}
+
+.detail-label {
+  @apply text-sm font-medium text-gray-500 dark:text-gray-400 mb-1;
+}
+
+.detail-value {
+  @apply text-base text-gray-900 dark:text-gray-100 font-medium;
+}
+
+/* Animation utilities */
+.fade-in {
+  @apply opacity-0;
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+.slide-in {
+  @apply transform translate-x-4 opacity-0;
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+/* Animation for filter badges */
+.filter-badge-enter {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Smooth transitions for all interactive elements */
+.smooth-transition {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+/* Hover animations */
+.hover-lift {
+  @apply transition-transform duration-200 ease-in-out hover:-translate-y-0.5;
+}
+
+.hover-glow {
+  @apply transition-shadow duration-200 ease-in-out hover:shadow-md;
+}
+
+/* Focus improvements */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800;
+}
+
+/* Utility classes */
+.text-muted {
+  @apply text-gray-500 dark:text-gray-400;
+}
+
+.bg-muted {
+  @apply bg-gray-50 dark:bg-gray-700;
+}
+
+.border-muted {
+  @apply border-gray-200 dark:border-gray-600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .enhanced-toolbar {
+    @apply flex-col items-stretch;
+  }
+  
+  .toolbar-left,
+  .toolbar-right {
+    @apply w-full justify-center;
+  }
+  
+  .enhanced-search {
+    @apply min-w-full;
+  }
+  
+  .form-section {
+    @apply p-4;
+  }
+  
+  .search-filters-header {
+    @apply flex-col items-start gap-3;
+  }
+  
+  .quick-filter-btn {
+    @apply text-xs px-3 py-1.5;
+  }
+  
+  .actions-grid-redesigned {
+    @apply grid-cols-1 gap-3;
+  }
+  
+  .action-button-redesigned {
+    @apply p-3;
+  }
+  
+  .action-icon-redesigned {
+    @apply w-8 h-8;
+  }
+  
+  .action-title-redesigned {
+    @apply text-sm;
+  }
+  
+  .action-description-redesigned {
+    @apply text-xs;
+  }
+  
+  .actions-content-redesigned {
+    @apply p-4;
+  }
+  
+  .actions-header-redesigned {
+    @apply px-4 py-3;
+  }
+}
+
+@media (max-width: 640px) {
+  .actions-grid-redesigned {
+    @apply grid-cols-1 gap-3;
+  }
+}
+
+/* Dark Mode Enhancements */
+@media (prefers-color-scheme: dark) {
+  .action-button-redesigned {
+    box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.3), 0 2px 8px -2px rgba(0, 0, 0, 0.2);
+  }
+}
