@@ -81,8 +81,7 @@ export class TransferRequestComponent implements OnInit {
     transferType: null as string | null,
     status: null as string | null,
     amount: null as number | null,
-    dateFrom: null as string | null,
-    dateTo: null as string | null,
+    
   }
 
   // Enhanced search properties
@@ -654,8 +653,7 @@ export class TransferRequestComponent implements OnInit {
       transferType: null,
       status: null,
       amount: null,
-      dateFrom: null,
-      dateTo: null,
+     
     }
     this.loadTransferRequests()
   }
@@ -832,8 +830,7 @@ export class TransferRequestComponent implements OnInit {
     if (this.searchCriteria.transferType) count++
     if (this.searchCriteria.status) count++
     if (this.searchCriteria.amount) count++
-    if (this.searchCriteria.dateFrom) count++
-    if (this.searchCriteria.dateTo) count++
+   
     return count
   }
 
@@ -850,11 +847,7 @@ export class TransferRequestComponent implements OnInit {
       case 'commercial':
         this.searchCriteria.transferType = 'COMMERCIAL'
         break
-      case 'today':
-        const today = new Date().toISOString().split('T')[0]
-        this.searchCriteria.dateFrom = today
-        this.searchCriteria.dateTo = today
-        break
+      
     }
     
     if (this.quickFilter === '') {
@@ -869,8 +862,7 @@ export class TransferRequestComponent implements OnInit {
       transferType: null,
       status: null,
       amount: null,
-      dateFrom: null,
-      dateTo: null,
+      
     }
     this.quickFilter = ''
     this.loadTransferRequests()
