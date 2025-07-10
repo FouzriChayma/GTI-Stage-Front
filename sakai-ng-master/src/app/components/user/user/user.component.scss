@@ -385,3 +385,78 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   }
 }
+
+/* Tips and Guidelines Section */
+.tip-card {
+  @apply bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:shadow-sm transition-all duration-200;
+}
+
+.tip-header {
+  @apply flex items-center gap-2 mb-3 pb-2 border-b border-gray-200 dark:border-gray-600;
+}
+
+.tip-title {
+  @apply text-sm font-medium text-gray-800 dark:text-gray-200;
+}
+
+.tip-list {
+  @apply space-y-2 text-xs text-gray-600 dark:text-gray-400;
+}
+
+.tip-list li {
+  @apply flex items-start gap-2;
+}
+
+.tip-list li::before {
+  content: "•";
+  @apply text-blue-500 dark:text-blue-400 font-bold mt-0.5 flex-shrink-0;
+}
+
+/* Role Information Styles */
+.role-info-list {
+  @apply space-y-2;
+}
+
+.role-info-item {
+  @apply flex items-center justify-between gap-2;
+}
+
+.role-badge-mini {
+  @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium shadow-sm flex-shrink-0;
+}
+
+.role-badge-mini.administrator {
+  @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border border-green-200 dark:border-green-800;
+}
+
+.role-badge-mini.client {
+  @apply bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border border-blue-200 dark:border-blue-800;
+}
+
+.role-badge-mini.charge-clientele {
+  @apply bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 border border-purple-200 dark:border-purple-800;
+}
+
+.role-description {
+  @apply text-xs text-gray-500 dark:text-gray-400 text-right;
+}
+
+/* Enhanced spacing for tips section */
+.enhanced-form-section .space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+/* Responsive adjustments for tips */
+@media (max-width: 1279px) {
+  .tip-card {
+    @apply p-3;
+  }
+  
+  .tip-list {
+    @apply text-xs;
+  }
+  
+  .role-badge-mini {
+    @apply text-xs px-1.5 py-0.5;
+  }
+}
