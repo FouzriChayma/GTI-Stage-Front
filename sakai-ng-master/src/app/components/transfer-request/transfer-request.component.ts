@@ -391,6 +391,10 @@ export class TransferRequestComponent implements OnInit {
       } else {
         await this.createTransferRequest()
       }
+      this.showSuccess("Transfer request saved successfully");
+    this.mode = "list";
+    this.loadTransferRequests(); // Refresh the data after saving
+    this.router.navigate(["/transfer-requests"]);
     } catch (error: any) {
       this.showError("Failed to save transfer request", error)
     } finally {
@@ -670,10 +674,13 @@ export class TransferRequestComponent implements OnInit {
   goBack() {
     this.mode = "list"
     this.router.navigate(["/transfer-requests"])
+    this.showSuccess("Transfer request saved successfully");
+    this.loadTransferRequests(); // Refresh the data after saving
   }
 
   hideDialog() {
     this.mode = "list"
+    this.loadTransferRequests(); // Refresh the data
     this.submitted = false
   }
 
