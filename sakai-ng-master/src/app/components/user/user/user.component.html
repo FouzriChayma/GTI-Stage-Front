@@ -1,64 +1,327 @@
-<!-- src/app/components/user/user/user.component.html -->
-<div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+  <!-- List Mode -->
+  <div *ngIf="mode === 'list'" class="space-y-6">
+    <!-- Toolbar -->
+    <div class="enhanced-card hover-glow smooth-transition">
+      <div class="enhanced-toolbar">
+        <div class="toolbar-left">
+          <button
+            pButton
+            pRipple
+            label="New User"
+            icon="pi pi-plus"
+            class="btn-success smooth-transition hover-lift"
+            (click)="openNew()"
+          ></button>
+        </div>
+      </div>
+    </div>
 
-<h2>User Management</h2>
+    <!-- User Table -->
+    <div class="enhanced-table-container">
+      <p-table
+        #dt
+        [value]="users"
+        [rows]="10"
+        [paginator]="true"
+        [globalFilterFields]="['email', 'firstName', 'lastName', 'phoneNumber', 'role']"
+        [rowHover]="true"
+        dataKey="id"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        [rowsPerPageOptions]="[5, 10, 25]"
+        styleClass="p-datatable-sm"
+      >
+        <ng-template pTemplate="header">
+          <tr class="table-header">
+            <th class="table-header-cell">ID</th>
+            <th class="table-header-cell" pSortableColumn="email">
+              Email <p-sortIcon field="email"></p-sortIcon>
+            </th>
+            <th class="table-header-cell" pSortableColumn="firstName">
+              First Name <p-sortIcon field="firstName"></p-sortIcon>
+            </th>
+            <th class="table-header-cell" pSortableColumn="lastName">
+              Last Name <p-sortIcon field="lastName"></p-sortIcon>
+            </th>
+            <th class="table-header-cell" pSortableColumn="phoneNumber">
+              Phone <p-sortIcon field="phoneNumber"></p-sortIcon>
+            </th>
+            <th class="table-header-cell" pSortableColumn="role">
+              Role <p-sortIcon field="role"></p-sortIcon>
+            </th>
+            <th class="table-header-cell">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-user>
+          <tr class="table-row">
+            <td class="table-cell font-mono text-sm">{{ user.id }}</td>
+            <td class="table-cell">{{ user.email }}</td>
+            <td class="table-cell">{{ user.firstName }}</td>
+            <td class="table-cell">{{ user.lastName }}</td>
+            <td class="table-cell">{{ user.phoneNumber }}</td>
+            <td class="table-cell">
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                [ngClass]="{
+                  'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': user.role === 'CLIENT',
+                  'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': user.role === 'ADMINISTRATOR',
+                  'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': user.role === 'CHARGE_CLIENTELE'
+                }"
+              >
+                {{ user.role }}
+              </span>
+            </td>
+            <td class="table-cell">
+              <div class="action-buttons">
+                <button
+                  pButton
+                  pRipple
+                  icon="pi pi-eye"
+                  class="action-btn action-btn-view"
+                  pTooltip="View Details"
+                  (click)="viewDetails(user.id)"
+                ></button>
+                <button
+                  pButton
+                  pRipple
+                  icon="pi pi-pencil"
+                  class="action-btn action-btn-edit"
+                  pTooltip="Edit"
+                  (click)="editUser(user)"
+                ></button>
+                <button
+                  pButton
+                  pRipple
+                  icon="pi pi-trash"
+                  class="action-btn action-btn-delete"
+                  pTooltip="Delete"
+                  (click)="deleteUser(user.id)"
+                ></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="7" class="table-cell text-center py-8">
+              <div class="flex flex-col items-center">
+                <i class="pi pi-inbox text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-500 dark:text-gray-400">No users found.</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
 
-<!-- Register Form -->
-<h3>Register New User</h3>
-<form (ngSubmit)="registerUser()" #registerForm="ngForm">
-  <div>
-    <label>Email:</label>
-    <input [(ngModel)]="newUser.email" name="email" required>
-  </div>
-  <div>
-    <label>First Name:</label>
-    <input [(ngModel)]="newUser.firstName" name="firstName" required>
-  </div>
-  <div>
-    <label>Last Name:</label>
-    <input [(ngModel)]="newUser.lastName" name="lastName" required>
-  </div>
-  <div>
-  <label>Password:</label>
-  <input [(ngModel)]="newUser.password" name="password" type="password" required>
-</div>
-  <div>
-    <label>Phone Number:</label>
-    <input [(ngModel)]="newUser.phoneNumber" name="phoneNumber" required>
-  </div>
-  <button type="submit" [disabled]="!registerForm.valid">Register</button>
-</form>
+  <!-- New/Edit Mode -->
+  <div *ngIf="mode === 'new' || mode === 'edit'" class="space-y-6 fade-in smooth-transition">
+    <!-- Header -->
+    <div class="enhanced-card hover-glow smooth-transition">
+      <div class="enhanced-toolbar">
+        <div class="toolbar-left">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            {{ mode === 'new' ? 'New User' : 'Edit User' }}
+          </h3>
+        </div>
+        <div class="toolbar-right">
+          <button
+            pButton
+            pRipple
+            label="Save"
+            icon="pi pi-check"
+            class="btn-success smooth-transition hover-lift"
+            [disabled]="isSaving"
+            (click)="saveUser()"
+          ></button>
+          <button
+            pButton
+            pRipple
+            label="Cancel"
+            icon="pi pi-times"
+            class="btn-secondary smooth-transition hover-lift"
+            (click)="goBack()"
+          ></button>
+        </div>
+      </div>
+    </div>
 
-<!-- Login Form -->
-<h3>Login</h3>
-<form (ngSubmit)="loginUser(loginEmail.value, loginPassword.value)" #loginForm="ngForm">
-  <div>
-    <label>Email:</label>
-    <input #loginEmail [(ngModel)]="loginEmail" name="loginEmail" required>
+    <!-- Form -->
+    <div class="form-section hover-glow smooth-transition">
+      <h5 class="form-section-title">User Information</h5>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="form-field">
+          <label for="email" class="form-label form-required">Email</label>
+          <input
+            pInputText
+            id="email"
+            [(ngModel)]="formUser.email"
+            required
+            class="form-input"
+            placeholder="Enter email"
+          />
+        </div>
+        <div *ngIf="mode === 'new'" class="form-field">
+          <label for="password" class="form-label form-required">Password</label>
+          <input
+            pInputText
+            id="password"
+            type="password"
+            [(ngModel)]="formUser.password"
+            required
+            class="form-input"
+            placeholder="Enter password"
+          />
+        </div>
+        <div class="form-field">
+          <label for="firstName" class="form-label form-required">First Name</label>
+          <input
+            pInputText
+            id="firstName"
+            [(ngModel)]="formUser.firstName"
+            required
+            class="form-input"
+            placeholder="Enter first name"
+          />
+        </div>
+        <div class="form-field">
+          <label for="lastName" class="form-label form-required">Last Name</label>
+          <input
+            pInputText
+            id="lastName"
+            [(ngModel)]="formUser.lastName"
+            required
+            class="form-input"
+            placeholder="Enter last name"
+          />
+        </div>
+        <div class="form-field">
+          <label for="phoneNumber" class="form-label form-required">Phone Number</label>
+          <input
+            pInputText
+            id="phoneNumber"
+            [(ngModel)]="formUser.phoneNumber"
+            required
+            class="form-input"
+            placeholder="Enter phone number"
+          />
+        </div>
+        <div class="form-field">
+          <label for="role" class="form-label form-required">Role</label>
+          <p-dropdown
+            id="role"
+            [options]="roles"
+            [(ngModel)]="formUser.role"
+            optionLabel="label"
+            optionValue="value"
+            required
+            styleClass="w-full"
+            placeholder="Select role"
+          ></p-dropdown>
+        </div>
+      </div>
+    </div>
   </div>
-  <div>
-    <label>Password:</label>
-    <input #loginPassword [(ngModel)]="loginPassword" name="loginPassword" type="password" required>
+
+  <!-- Details Mode -->
+  <div *ngIf="mode === 'details' && !isLoading" class="space-y-6 fade-in smooth-transition">
+    <!-- Header -->
+    <div class="enhanced-card hover-glow smooth-transition">
+      <div class="enhanced-toolbar">
+        <div class="toolbar-left">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            User Details - {{ selectedUser!.email }}
+          </h3>
+        </div>
+        <div class="toolbar-right">
+          <button
+            pButton
+            pRipple
+            label="Edit"
+            icon="pi pi-pencil"
+            class="btn-info smooth-transition hover-lift"
+            (click)="editUser(selectedUser!)"
+          ></button>
+          <button
+            pButton
+            pRipple
+            label="Back"
+            icon="pi pi-arrow-left"
+            class="btn-secondary smooth-transition hover-lift"
+            (click)="goBack()"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Details -->
+    <div class="form-section hover-glow smooth-transition">
+      <h5 class="form-section-title">User Information</h5>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+            <i class="pi pi-id-card text-xs"></i>
+            ID
+          </div>
+          <div class="text-base font-mono text-gray-900 dark:text-gray-100">{{ selectedUser!.id }}</div>
+        </div>
+        <div class="space-y-1">
+          <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+            <i class="pi pi-envelope text-xs"></i>
+            Email
+          </div>
+          <div class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ selectedUser!.email }}</div>
+        </div>
+        <div class="space-y-1">
+          <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+            <i class="pi pi-user text-xs"></i>
+            First Name
+          </div>
+          <div class="text-base text-gray-900 dark:text-gray-100">{{ selectedUser!.firstName }}</div>
+        </div>
+        <div class="space-y-1">
+          <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+            <i class="pi pi-user text-xs"></i>
+            Last Name
+          </div>
+          <div class="text-base text-gray-900 dark:text-gray-100">{{ selectedUser!.lastName }}</div>
+        </div>
+        <div class="space-y-1">
+          <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+            <i class="pi pi-phone text-xs"></i>
+            Phone Number
+          </div>
+          <div class="text-base text-gray-900 dark:text-gray-100">{{ selectedUser!.phoneNumber }}</div>
+        </div>
+        <div class="space-y-1">
+          <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+            <i class="pi pi-tag text-xs"></i>
+            Role
+          </div>
+          <div class="text-base text-gray-900 dark:text-gray-100">
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+              [ngClass]="{
+                'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': selectedUser!.role === 'CLIENT',
+                'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': selectedUser!.role === 'ADMINISTRATOR',
+                'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': selectedUser!.role === 'CHARGE_CLIENTELE'
+              }"
+            >
+              {{ selectedUser!.role }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <button type="submit" [disabled]="!loginForm.valid">Login</button>
-</form>
 
-<!-- User List -->
-<h3>Users</h3>
-<ul>
-  <li *ngFor="let user of users">
-    {{ user.firstName }} {{ user.lastName }} ({{ user.email }})
-    <button (click)="getUser(user.id)">View</button>
-    <button (click)="deleteUser(user.id)">Delete</button>
-  </li>
-</ul>
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex items-center justify-center py-12">
+    <p-progressSpinner></p-progressSpinner>
+  </div>
 
-<!-- User Details -->
-<div *ngIf="selectedUser">
-  <h3>User Details</h3>
-  <p>Email: {{ selectedUser.email }}</p> <!-- Removed ?. -->
-  <p>Name: {{ selectedUser.firstName }} {{ selectedUser.lastName }}</p> <!-- Removed ?. -->
-  <p>Phone: {{ selectedUser.phoneNumber }}</p> <!-- Removed ?. -->
-  <button (click)="updateUser()">Update</button>
-  <button (click)="selectedUser = null">Close</button>
+  <p-toast></p-toast>
+  <p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
 </div>

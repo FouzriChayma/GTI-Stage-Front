@@ -1021,33 +1021,47 @@
       </div>
 
       <!-- Documents -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-    <h5 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-      <i class="pi pi-file text-blue-600 dark:text-blue-400"></i>
-      Documents
-    </h5>
-    <div *ngIf="transferRequest.documents?.length; else noDocuments" class="mt-4 space-y-2">
-      <div *ngFor="let doc of transferRequest.documents" class="file-item flex items-center justify-between">
+      <!-- Documents -->
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+  <h5 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+    <i class="pi pi-file text-blue-600 dark:text-blue-400"></i>
+    Documents
+  </h5>
+  <div *ngIf="transferRequest.documents?.length; else noDocuments" class="mt-4 space-y-2">
+    <div *ngFor="let doc of transferRequest.documents" class="file-item flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 flex-grow">
         <a 
           class="file-name cursor-pointer text-blue-600 dark:text-blue-400 hover:underline" 
           (click)="openDocument(doc.idDocument, doc.fileName)"
           pTooltip="Click to open document">
           {{ doc.fileName }}
         </a>
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          pButton
+          pRipple
+          icon="pi pi-download"
+          class="p-button-sm p-button-rounded p-button-text"
+          pTooltip="Download document"
+          (click)="downloadDocument(doc.idDocument, doc.fileName)">
+        </button>
         <button
           *ngIf="!isEditDisabled(transferRequest.status)"
           pButton
           pRipple
           icon="pi pi-trash"
-          class="action-btn action-btn-delete"
+          class="p-button-sm p-button-rounded p-button-text p-button-danger"
+          pTooltip="Delete document"
           (click)="deleteDocument(doc.idDocument)">
         </button>
       </div>
     </div>
-    <ng-template #noDocuments>
-      <p class="text-gray-500 dark:text-gray-400 mt-4">No documents uploaded.</p>
-    </ng-template>
   </div>
+  <ng-template #noDocuments>
+    <p class="text-gray-500 dark:text-gray-400 mt-4">No documents uploaded.</p>
+  </ng-template>
+</div>
 
       <!-- Enhanced Available Actions Section -->
       <div *ngIf="canPerformActions()" class="actions-section-redesigned">

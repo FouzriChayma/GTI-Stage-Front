@@ -891,7 +891,7 @@ export class TransferRequestComponent implements OnInit {
     return status === "VALIDATED" || status === "REJECTED" || status === "COMPLETED"
   }
    
-  async openDocument(documentId: number, fileName: string) {
+  /*async openDocument(documentId: number, fileName: string) {
     try {
       this.isLoading = true;
       const blob = await lastValueFrom(
@@ -910,5 +910,62 @@ export class TransferRequestComponent implements OnInit {
       this.isLoading = false;
       this.cdr.detectChanges();
     }
+  } */
+ async openDocument(documentId: number, fileName: string) {
+  try {
+    this.isLoading = true;
+    const blob = await lastValueFrom(
+      this.transferRequestService.downloadDocument(this.transferRequestId, documentId)
+    );
+    
+    // Create object URL from the blob
+    const url = window.URL.createObjectURL(blob);
+    
+    // Check if it's a PDF (open in browser)
+    if (fileName.toLowerCase().endsWith('.pdf')) {
+      // Open in new tab
+      window.open(url, '_blank');
+    } else {
+      // For images, create an image preview
+      const img = new Image();
+      img.src = url;
+      const win = window.open('', '_blank');
+      win?.document.write(img.outerHTML);
+      win?.document.close();
+    }
+    
+    // Don't revoke the URL immediately as it's being used in the new tab
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 1000);
+    
+    this.showSuccess(`Document "${fileName}" opened successfully`);
+  } catch (error) {
+    this.showError(`Failed to open document "${fileName}"`, error);
+  } finally {
+    this.isLoading = false;
+    this.cdr.detectChanges();
   }
+}
+
+async downloadDocument(documentId: number, fileName: string) {
+  try {
+    this.isLoading = true;
+    const blob = await lastValueFrom(
+      this.transferRequestService.downloadDocument(this.transferRequestId, documentId)
+    );
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    this.showSuccess(`Document "${fileName}" downloaded successfully`);
+  } catch (error) {
+    this.showError(`Failed to download document "${fileName}"`, error);
+  } finally {
+    this.isLoading = false;
+    this.cdr.detectChanges();
+  }
+}
 }
