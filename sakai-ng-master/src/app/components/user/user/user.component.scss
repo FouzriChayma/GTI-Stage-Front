@@ -1,9 +1,77 @@
-/* Enhanced User Details Component - Following Transfer Request Theme */
+/* Enhanced User Component - Aligned with Transfer Request Search Section Theme */
 @import '../../transfer-request/transfer-request.component.css';
 
 /* Override and enhance specific user component styles */
 
-/* Enhanced Profile Photo Section - Compact Horizontal Layout */
+/* Enhanced Search Filters Section */
+.search-filters-header {
+  @apply px-6 py-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-toggle-btn {
+  @apply w-8 h-8 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200;
+}
+
+.search-toggle-btn.expanded {
+  @apply bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700;
+}
+
+.search-filters-content {
+  @apply overflow-hidden transition-all duration-300 ease-in-out;
+  max-height: 0;
+  opacity: 0;
+}
+
+.search-filters-content.expanded {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+.quick-filter-btn {
+  @apply inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200;
+}
+
+.quick-filter-btn.active {
+  @apply bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700;
+}
+
+/* Enhanced Form Fields */
+.form-field {
+  @apply mb-4;
+}
+
+.enhanced-form-label {
+  @apply flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
+}
+
+.enhanced-input-wrapper {
+  @apply relative;
+}
+
+.enhanced-input {
+  @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500;
+}
+
+.enhanced-dropdown {
+  @apply w-full;
+}
+
+.enhanced-btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 border-0 outline-none inline-flex items-center;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.enhanced-btn-secondary {
+  @apply bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium px-6 py-3 rounded-lg transition-colors duration-200 border-0 outline-none inline-flex items-center;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Profile Photo Section */
 .profile-photo-section {
   @apply bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800 p-6;
 }
@@ -78,7 +146,6 @@
   box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.4), 0 4px 6px -2px rgba(34, 197, 94, 0.3) !important;
 }
 
-/* Enhanced Delete Photo Button */
 .delete-photo-btn {
   @apply bg-red-500 hover:bg-red-600 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 border-0 outline-none flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5;
   border: none !important;
@@ -96,14 +163,6 @@
 
 .user-info-item-compact {
   @apply bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200;
-}
-
-.user-info-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
-}
-
-.user-info-item {
-  @apply bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200;
 }
 
 .user-info-label {
@@ -168,7 +227,6 @@
   @apply text-sm text-gray-500 dark:text-gray-400;
 }
 
-/* Enhanced Action Buttons in Header */
 .header-actions {
   @apply flex items-center gap-3;
 }
@@ -196,45 +254,7 @@
   box-shadow: 0 10px 15px -3px rgba(75, 85, 99, 0.4), 0 4px 6px -2px rgba(75, 85, 99, 0.3) !important;
 }
 
-/* Enhanced File Upload Section */
-.file-upload-section {
-  @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6;
-}
-
-.file-upload-title {
-  @apply text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2;
-}
-
-.file-upload-area-enhanced {
-  @apply border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-200 bg-gray-50 dark:bg-gray-700/50;
-}
-
-.file-upload-area-enhanced:hover {
-  @apply bg-blue-50 dark:bg-blue-900/20;
-}
-
-.file-upload-icon {
-  @apply text-4xl text-gray-400 dark:text-gray-500 mb-4;
-}
-
-.file-upload-text {
-  @apply text-gray-600 dark:text-gray-400 mb-2;
-}
-
-.file-upload-hint {
-  @apply text-sm text-gray-500 dark:text-gray-400;
-}
-
-/* Enhanced Preview Image */
-.preview-image-container {
-  @apply mt-4 flex justify-center;
-}
-
-.preview-image {
-  @apply w-32 h-32 object-cover rounded-xl border-2 border-gray-200 dark:border-gray-600 shadow-md;
-}
-
-/* Form Enhancements for New/Edit Mode */
+/* Enhanced Form Section */
 .enhanced-form-section {
   @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-all duration-200;
 }
@@ -249,10 +269,6 @@
 
 .enhanced-form-field {
   @apply space-y-2;
-}
-
-.enhanced-form-label {
-  @apply block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2;
 }
 
 .enhanced-form-input {
@@ -286,26 +302,34 @@
   .user-info-grid {
     @apply grid-cols-1 gap-4;
   }
-  
+
   .enhanced-form-grid {
     @apply grid-cols-1 gap-4;
   }
-  
+
   .profile-photo,
   .profile-photo-placeholder {
     @apply w-24 h-24;
   }
-  
+
   .user-details-header-content {
     @apply px-4 py-3;
   }
-  
+
   .header-actions {
     @apply flex-col w-full gap-2;
   }
-  
+
   .header-btn {
     @apply w-full justify-center;
+  }
+
+  .search-filters-header {
+    @apply flex-col items-start gap-3;
+  }
+
+  .quick-filter-btn {
+    @apply text-xs px-3 py-1.5;
   }
 }
 
@@ -313,11 +337,11 @@
   .enhanced-form-section {
     @apply p-4;
   }
-  
+
   .user-info-item {
     @apply p-4;
   }
-  
+
   .profile-photo-section {
     @apply p-4;
   }
@@ -356,7 +380,7 @@
   .user-info-item {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   }
-  
+
   .enhanced-form-section {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   }

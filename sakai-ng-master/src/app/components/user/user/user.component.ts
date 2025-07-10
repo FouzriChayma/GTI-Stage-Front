@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import type { User } from '../../../models/User';
 import { lastValueFrom } from 'rxjs';
 import { FormsModule } from '@angular/forms';
@@ -23,7 +23,12 @@ export const environment = {
 
 interface Role {
   label: string;
-  value: string;
+  value: string | null;
+}
+
+interface ActiveStatus {
+  label: string;
+  value: boolean | null;
 }
 
 @Component({
@@ -52,15 +57,35 @@ export class UserComponent implements OnInit {
   formUser: User = this.resetFormUser();
   isLoading = false;
   isSaving = false;
+  isSearching = false;
   submitted = false;
   selectedFile: File | null = null;
   profilePhotoUrl: SafeUrl | null = null;
   profilePhotoUrls: { [key: number]: SafeUrl | null } = {};
+  filtersExpanded = true; // Initially expanded
+  quickFilter: string | null = 'all';
+
+  // Search form model
+  searchCriteria = {
+    email: '',
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    role: null as string | null,
+    isActive: null as boolean | null,
+  };
 
   roles: Role[] = [
+    { label: 'All', value: null },
     { label: 'Client', value: 'CLIENT' },
     { label: 'Administrator', value: 'ADMINISTRATOR' },
     { label: 'Charge Clientele', value: 'CHARGE_CLIENTELE' },
+  ];
+
+  activeStatuses: ActiveStatus[] = [
+    { label: 'All', value: null },
+    { label: 'Active', value: true },
+    { label: 'Inactive', value: false },
   ];
 
   @ViewChild('dt') dt!: Table;
@@ -95,6 +120,28 @@ export class UserComponent implements OnInit {
     };
   }
 
+  toggleFilters(): void {
+    this.filtersExpanded = !this.filtersExpanded;
+    this.cdr.detectChanges();
+  }
+
+  getActiveFiltersCount(): number {
+    return Object.values(this.searchCriteria).filter(
+      (value) => value !== null && value !== '' && value !== undefined
+    ).length;
+  }
+
+  setQuickFilter(filter: string): void {
+    this.quickFilter = filter;
+    this.searchCriteria.role = filter === 'all' ? null : filter.toUpperCase();
+    this.searchCriteria.email = '';
+    this.searchCriteria.firstName = '';
+    this.searchCriteria.lastName = '';
+    this.searchCriteria.phoneNumber = '';
+    this.searchCriteria.isActive = null;
+    this.searchUsers();
+  }
+
   openNew(): void {
     this.mode = 'new';
     this.formUser = this.resetFormUser();
@@ -124,6 +171,48 @@ export class UserComponent implements OnInit {
       this.isLoading = false;
       this.cdr.detectChanges();
     }
+  }
+
+  async searchUsers(): Promise<void> {
+    this.isSearching = true;
+    try {
+      let params = new HttpParams();
+      if (this.searchCriteria.email) params = params.set('email', this.searchCriteria.email.trim());
+      if (this.searchCriteria.firstName) params = params.set('firstName', this.searchCriteria.firstName.trim());
+      if (this.searchCriteria.lastName) params = params.set('lastName', this.searchCriteria.lastName.trim());
+      if (this.searchCriteria.phoneNumber) params = params.set('phoneNumber', this.searchCriteria.phoneNumber.trim());
+      if (this.searchCriteria.role) params = params.set('role', this.searchCriteria.role);
+      if (this.searchCriteria.isActive !== null) params = params.set('isActive', this.searchCriteria.isActive.toString());
+
+      const users = await lastValueFrom(this.http.get<User[]>(`${this.apiUrl}/users/search`, { params }));
+      this.users = users;
+      for (const user of this.users) {
+        if (user.profilePhotoPath) {
+          await this.loadProfilePhotoForUser(user.id);
+        } else {
+          this.profilePhotoUrls[user.id] = null;
+        }
+      }
+      this.showSuccess(users.length ? 'Users found' : 'No users found');
+    } catch (err) {
+      this.showError('Search failed', err);
+    } finally {
+      this.isSearching = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  resetSearch(): void {
+    this.searchCriteria = {
+      email: '',
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+      role: null,
+      isActive: null,
+    };
+    this.quickFilter = 'all';
+    this.loadUsers();
   }
 
   private async loadProfilePhotoForUser(userId: number): Promise<void> {
@@ -163,10 +252,8 @@ export class UserComponent implements OnInit {
       this.showError('No file selected for upload');
       return;
     }
-
     const formData = new FormData();
     formData.append('file', this.selectedFile);
-
     try {
       const response = await lastValueFrom(
         this.http.post<User>(`${this.apiUrl}/users/${userId}/profile-photo`, formData)
@@ -180,7 +267,7 @@ export class UserComponent implements OnInit {
       }
       this.showSuccess('Profile photo uploaded successfully');
       this.selectedFile = null;
-      await this.loadProfilePhotoForUser(userId); // Update profilePhotoUrls
+      await this.loadProfilePhotoForUser(userId);
     } catch (err) {
       this.showError('Failed to upload profile photo', err);
     }
@@ -192,7 +279,7 @@ export class UserComponent implements OnInit {
         this.http.get(`${this.apiUrl}/users/${userId}/profile-photo`, { responseType: 'blob' })
       );
       this.profilePhotoUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(response));
-      this.profilePhotoUrls[userId] = this.profilePhotoUrl; // Sync with list view
+      this.profilePhotoUrls[userId] = this.profilePhotoUrl;
       this.cdr.detectChanges();
     } catch (err) {
       this.profilePhotoUrl = null;
@@ -217,7 +304,7 @@ export class UserComponent implements OnInit {
             this.selectedUser.profilePhotoPath = '';
           }
           this.profilePhotoUrl = null;
-          this.profilePhotoUrls[userId] = null; // Update list view
+          this.profilePhotoUrls[userId] = null;
           this.showSuccess('Profile photo deleted successfully');
           this.cdr.detectChanges();
         } catch (err) {
@@ -229,15 +316,11 @@ export class UserComponent implements OnInit {
 
   async saveUser(): Promise<void> {
     this.submitted = true;
-
     console.log('Saving user with role:', this.formUser.role);
     console.log('Full form user object:', this.formUser);
-
     if (!this.validateForm()) return;
-
     this.isSaving = true;
     const payload = this.preparePayload();
-
     try {
       let user: User;
       if (this.mode === 'new') {
@@ -246,7 +329,7 @@ export class UserComponent implements OnInit {
         this.showSuccess('User registered successfully');
         console.log('User created with role:', user.role);
         if (this.selectedFile) {
-          await this.uploadProfilePhoto(user.id); // Uploads and updates profilePhotoUrls
+          await this.uploadProfilePhoto(user.id);
         } else {
           this.profilePhotoUrls[user.id] = null;
         }
@@ -260,11 +343,11 @@ export class UserComponent implements OnInit {
         }
         this.showSuccess('User updated successfully');
         if (this.selectedFile) {
-          await this.uploadProfilePhoto(user.id); // Uploads and updates profilePhotoUrls
+          await this.uploadProfilePhoto(user.id);
         } else if (user.profilePhotoPath) {
-          await this.loadProfilePhotoForUser(user.id); // Refresh existing photo
+          await this.loadProfilePhotoForUser(user.id);
         } else {
-          this.profilePhotoUrls[user.id] = null; // No photo
+          this.profilePhotoUrls[user.id] = null;
         }
       }
       this.mode = 'list';
@@ -272,7 +355,7 @@ export class UserComponent implements OnInit {
       this.formUser = this.resetFormUser();
       this.selectedFile = null;
       this.profilePhotoUrl = null;
-      this.cdr.detectChanges(); // Ensure UI updates
+      this.cdr.detectChanges();
     } catch (err) {
       this.showError(this.mode === 'new' ? 'Registration failed' : 'Update failed', err);
       console.error('Error details:', err);
@@ -291,11 +374,9 @@ export class UserComponent implements OnInit {
       phoneNumber: this.formUser.phoneNumber?.trim(),
       role: this.formUser.role,
     };
-
     if (this.mode === 'edit') {
       delete payload.password;
     }
-
     console.log('Prepared payload:', payload);
     return payload;
   }
@@ -445,5 +526,4 @@ export class UserComponent implements OnInit {
       life: 3000,
     });
   }
-  
 }

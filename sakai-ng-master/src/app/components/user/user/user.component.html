@@ -17,6 +17,222 @@
       </div>
     </div>
 
+    <!-- Enhanced Search Filters Section -->
+<div class="enhanced-card hover-glow smooth-transition">
+  <!-- Collapsible Header -->
+  <div class="search-filters-header" (click)="toggleFilters()">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+        <i class="pi pi-filter text-blue-600 dark:text-blue-400"></i>
+      </div>
+      <div>
+        <h5 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Search Users</h5>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          {{ getActiveFiltersCount() }} filter(s) active
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- Quick Filter Badges -->
+      <div class="hidden md:flex items-center gap-2">
+        <span *ngIf="searchCriteria.role"
+              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+          <i class="pi pi-tag mr-1 text-xs"></i>
+          {{ searchCriteria.role }}
+        </span>
+        <span *ngIf="searchCriteria.email"
+              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+          <i class="pi pi-envelope mr-1 text-xs"></i>
+          {{ searchCriteria.email }}
+        </span>
+        <span *ngIf="searchCriteria.isActive !== null"
+              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+          <i class="pi pi-check-circle mr-1 text-xs"></i>
+          {{ searchCriteria.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+      <!-- Toggle Button -->
+      <button
+        type="button"
+        class="search-toggle-btn"
+        [class.expanded]="filtersExpanded">
+        <i class="pi" [class.pi-chevron-down]="!filtersExpanded" [class.pi-chevron-up]="filtersExpanded"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Expandable Filters Content -->
+  <div class="search-filters-content" [class.expanded]="filtersExpanded">
+    <div class="enhanced-card-body">
+      <!-- Quick Actions Row -->
+      <div class="flex flex-wrap items-center gap-3 mb-6 pb-4 border-b border-gray-200 dark:border-gray-600">
+        <button
+          type="button"
+          class="quick-filter-btn"
+          [class.active]="quickFilter === 'all'"
+          (click)="setQuickFilter('all')">
+          <i class="pi pi-users mr-2"></i>
+          All
+        </button>
+        <button
+          type="button"
+          class="quick-filter-btn"
+          [class.active]="quickFilter === 'client'"
+          (click)="setQuickFilter('client')">
+          <i class="pi pi-user mr-2"></i>
+          Client
+        </button>
+        <button
+          type="button"
+          class="quick-filter-btn"
+          [class.active]="quickFilter === 'administrator'"
+          (click)="setQuickFilter('administrator')">
+          <i class="pi pi-shield mr-2"></i>
+          Administrator
+        </button>
+        <button
+          type="button"
+          class="quick-filter-btn"
+          [class.active]="quickFilter === 'charge-clientele'"
+          (click)="setQuickFilter('charge-clientele')">
+          <i class="pi pi-users mr-2"></i>
+          Charge Clientele
+        </button>
+      </div>
+
+      <!-- Advanced Filters Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="form-field">
+          <label for="searchRole" class="enhanced-form-label">
+            <i class="pi pi-tag text-blue-600 dark:text-blue-400 mr-3"></i>
+            Role
+          </label>
+          <div class="enhanced-input-wrapper">
+            <p-dropdown
+              id="searchRole"
+              [options]="roles"
+              [(ngModel)]="searchCriteria.role"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select role"
+              styleClass="w-full enhanced-dropdown"
+            ></p-dropdown>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="searchEmail" class="enhanced-form-label">
+            <i class="pi pi-envelope text-green-600 dark:text-green-400 mr-3"></i>
+            Email
+          </label>
+          <div class="enhanced-input-wrapper">
+            <input
+              pInputText
+              id="searchEmail"
+              [(ngModel)]="searchCriteria.email"
+              placeholder="Enter email"
+              class="enhanced-input"
+            />
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="searchIsActive" class="enhanced-form-label">
+            <i class="pi pi-check-circle text-purple-600 dark:text-purple-400 mr-3"></i>
+            Status
+          </label>
+          <div class="enhanced-input-wrapper">
+            <p-dropdown
+              id="searchIsActive"
+              [options]="activeStatuses"
+              [(ngModel)]="searchCriteria.isActive"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select status"
+              styleClass="w-full enhanced-dropdown"
+            ></p-dropdown>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="searchFirstName" class="enhanced-form-label">
+            <i class="pi pi-user text-orange-600 dark:text-orange-400 mr-3"></i>
+            First Name
+          </label>
+          <div class="enhanced-input-wrapper">
+            <input
+              pInputText
+              id="searchFirstName"
+              [(ngModel)]="searchCriteria.firstName"
+              placeholder="Enter first name"
+              class="enhanced-input"
+            />
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="searchLastName" class="enhanced-form-label">
+            <i class="pi pi-user text-orange-600 dark:text-orange-400 mr-3"></i>
+            Last Name
+          </label>
+          <div class="enhanced-input-wrapper">
+            <input
+              pInputText
+              id="searchLastName"
+              [(ngModel)]="searchCriteria.lastName"
+              placeholder="Enter last name"
+              class="enhanced-input"
+            />
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="searchPhoneNumber" class="enhanced-form-label">
+            <i class="pi pi-phone text-emerald-600 dark:text-emerald-400 mr-3"></i>
+            Phone Number
+          </label>
+          <div class="enhanced-input-wrapper">
+            <input
+              pInputText
+              id="searchPhoneNumber"
+              [(ngModel)]="searchCriteria.phoneNumber"
+              placeholder="Enter phone number"
+              class="enhanced-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+        <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <i class="pi pi-info-circle"></i>
+          <span>{{ users.length }} results found</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            pButton
+            pRipple
+            type="button"
+            class="enhanced-btn-secondary"
+            (click)="resetSearch()"
+          >
+            <i class="pi pi-times mr-2"></i>
+            Clear All
+          </button>
+          <button
+            pButton
+            pRipple
+            type="button"
+            class="enhanced-btn-primary"
+            (click)="searchUsers()"
+            [disabled]="isSearching"
+          >
+            <i class="pi pi-search mr-2" *ngIf="!isSearching"></i>
+            <i class="pi pi-spin pi-spinner mr-2" *ngIf="isSearching"></i>
+            {{ isSearching ? 'Searching...' : 'Apply Filters' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
     <!-- Enhanced User Table -->
     <div class="enhanced-table-container">
       <p-table
@@ -24,7 +240,6 @@
         [value]="users"
         [rows]="10"
         [paginator]="true"
-        [globalFilterFields]="['email', 'firstName', 'lastName', 'phoneNumber', 'role']"
         [rowHover]="true"
         dataKey="id"
         [showCurrentPageReport]="true"
@@ -60,7 +275,6 @@
             </th>
           </tr>
         </ng-template>
-
         <ng-template pTemplate="body" let-user>
           <tr class="table-row">
             <td class="table-cell">
@@ -134,7 +348,6 @@
             </td>
           </tr>
         </ng-template>
-
         <ng-template pTemplate="emptymessage">
           <tr>
             <td colspan="8" class="table-cell text-center py-8">
@@ -172,7 +385,6 @@
             <button
               pButton
               pRipple
-              label="Save"
               icon="pi pi-check"
               class="header-btn header-btn-edit"
               [disabled]="isSaving"
@@ -195,15 +407,14 @@
     </div>
 
     <!-- Enhanced Form with Equal Height Layout -->
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
-      
-      <!-- Left Column: Profile & Info -->
-      <div class="space-y-6 h-full">
+    <div class="grid grid-cols-1 xl:grid-cols-5 gap-6 items-start">
+      <!-- Left Column: Profile & Info (2 columns) -->
+      <div class="xl:col-span-2 space-y-6 h-full">
         <!-- Profile Photo Card -->
         <div class="enhanced-form-section h-auto">
           <h5 class="enhanced-form-title">
-            <i class="pi pi-image text-blue-600 dark:text-blue-400"></i>
-             Photo
+            <i class="pi pi-image text-blue-600 dark:text-blue-400 mr-3"></i>
+            Photo
           </h5>
           
           <div class="text-center space-y-4">
@@ -221,7 +432,6 @@
                 <i class="pi pi-camera profile-photo-edit-icon"></i>
               </div>
             </div>
-
             <div class="flex flex-col sm:flex-row gap-2 justify-center">
               <p-fileUpload
                 mode="basic"
@@ -231,7 +441,6 @@
                 (onSelect)="onFileSelect($event)"
                 styleClass="choose-photo-btn"
               ></p-fileUpload>
-
               <button
                 *ngIf="mode === 'edit' && formUser.id && profilePhotoUrl"
                 pButton
@@ -242,7 +451,6 @@
                 (click)="deleteProfilePhoto(formUser.id)"
               ></button>
             </div>
-
             <p class="text-xs text-gray-500 dark:text-gray-400">
               PNG, JPEG (max 10MB)
             </p>
@@ -252,7 +460,7 @@
         <!-- User Info Preview (for edit mode) -->
         <div *ngIf="mode === 'edit'" class="enhanced-form-section flex-1">
           <h5 class="enhanced-form-title">
-            <i class="pi pi-info-circle text-blue-600 dark:text-blue-400"></i>
+            <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 mr-3"></i>
             Current Info
           </h5>
           
@@ -281,15 +489,13 @@
             </div>
           </div>
         </div>
-
-        
       </div>
 
-      <!-- Right Column: Form Fields -->
-      <div class="h-full">
+      <!-- Right Column: Form Fields (3 columns) -->
+      <div class="xl:col-span-3 h-full">
         <div class="enhanced-form-section h-full">
           <h5 class="enhanced-form-title">
-            <i class="pi pi-user text-blue-600 dark:text-blue-400"></i>
+            <i class="pi pi-user text-blue-600 dark:text-blue-400 mr-3"></i>
             User Information
           </h5>
 
@@ -298,7 +504,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div class="enhanced-form-field lg:col-span-2">
                 <label for="email" class="enhanced-form-label">
-                  <i class="pi pi-envelope text-blue-600 dark:text-blue-400"></i>
+                  <i class="pi pi-envelope text-blue-600 dark:text-blue-400 mr-3"></i>
                   Email Address
                   <span class="required-indicator"></span>
                 </label>
@@ -317,7 +523,7 @@
 
               <div *ngIf="mode === 'new'" class="enhanced-form-field lg:col-span-2">
                 <label for="password" class="enhanced-form-label">
-                  <i class="pi pi-lock text-green-600 dark:text-green-400"></i>
+                  <i class="pi pi-lock text-green-600 dark:text-green-400 mr-3"></i>
                   Password
                   <span class="required-indicator"></span>
                 </label>
@@ -337,7 +543,7 @@
 
               <div class="enhanced-form-field">
                 <label for="firstName" class="enhanced-form-label">
-                  <i class="pi pi-user text-purple-600 dark:text-purple-400"></i>
+                  <i class="pi pi-user text-purple-600 dark:text-purple-400 mr-3"></i>
                   First Name
                   <span class="required-indicator"></span>
                 </label>
@@ -353,7 +559,7 @@
 
               <div class="enhanced-form-field">
                 <label for="lastName" class="enhanced-form-label">
-                  <i class="pi pi-user text-purple-600 dark:text-purple-400"></i>
+                  <i class="pi pi-user text-purple-600 dark:text-purple-400 mr-3"></i>
                   Last Name
                   <span class="required-indicator"></span>
                 </label>
@@ -369,7 +575,7 @@
 
               <div class="enhanced-form-field">
                 <label for="phoneNumber" class="enhanced-form-label">
-                  <i class="pi pi-phone text-orange-600 dark:text-orange-400"></i>
+                  <i class="pi pi-phone text-orange-600 dark:text-orange-400 mr-3"></i>
                   Phone Number
                   <span class="required-indicator"></span>
                 </label>
@@ -388,7 +594,7 @@
 
               <div class="enhanced-form-field">
                 <label for="role" class="enhanced-form-label">
-                  <i class="pi pi-tag text-indigo-600 dark:text-indigo-400"></i>
+                  <i class="pi pi-tag text-indigo-600 dark:text-indigo-400 mr-3"></i>
                   User Role
                   <span class="required-indicator"></span>
                 </label>
@@ -453,10 +659,9 @@
     <!-- Enhanced User Information -->
     <div class="enhanced-form-section slide-in-up">
       <h5 class="enhanced-form-title">
-        <i class="pi pi-info-circle text-blue-600 dark:text-blue-400"></i>
+        <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 mr-3"></i>
         User Information
       </h5>
-
       <div class="space-y-6">
         <!-- Profile Photo Section - Compact Horizontal Layout -->
         <div class="profile-photo-section">
@@ -474,7 +679,6 @@
                   <i class="pi pi-user text-2xl text-gray-400 dark:text-gray-500"></i>
                 </div>
               </div>
-
               <div *ngIf="profilePhotoUrl && selectedUser!.id" class="profile-photo-actions-compact">
                 <button
                   pButton
@@ -485,7 +689,6 @@
                   (click)="deleteProfilePhoto(selectedUser!.id)"
                 ></button>
               </div>
-
               <p *ngIf="!profilePhotoUrl" class="text-xs text-gray-500 dark:text-gray-400 text-center">
                 No photo
               </p>
@@ -496,47 +699,42 @@
               <div class="user-info-grid-compact">
                 <div class="user-info-item-compact">
                   <div class="user-info-label">
-                    <i class="pi pi-id-card text-gray-600 dark:text-gray-400"></i>
+                    <i class="pi pi-id-card text-gray-600 dark:text-gray-400 mr-2"></i>
                     ID
                   </div>
                   <div class="user-info-value id">{{ selectedUser!.id }}</div>
                 </div>
-
                 <div class="user-info-item-compact">
                   <div class="user-info-label">
-                    <i class="pi pi-envelope text-blue-600 dark:text-blue-400"></i>
+                    <i class="pi pi-envelope text-blue-600 dark:text-blue-400 mr-2"></i>
                     Email
                   </div>
                   <div class="user-info-value email">{{ selectedUser!.email }}</div>
                 </div>
-
                 <div class="user-info-item-compact">
                   <div class="user-info-label">
-                    <i class="pi pi-user text-purple-600 dark:text-purple-400"></i>
+                    <i class="pi pi-user text-purple-600 dark:text-purple-400 mr-2"></i>
                     First Name
                   </div>
                   <div class="user-info-value">{{ selectedUser!.firstName }}</div>
                 </div>
-
                 <div class="user-info-item-compact">
                   <div class="user-info-label">
-                    <i class="pi pi-user text-purple-600 dark:text-purple-400"></i>
+                    <i class="pi pi-user text-purple-600 dark:text-purple-400 mr-2"></i>
                     Last Name
                   </div>
                   <div class="user-info-value">{{ selectedUser!.lastName }}</div>
                 </div>
-
                 <div class="user-info-item-compact">
                   <div class="user-info-label">
-                    <i class="pi pi-phone text-orange-600 dark:text-orange-400"></i>
+                    <i class="pi pi-phone text-orange-600 dark:text-orange-400 mr-2"></i>
                     Phone Number
                   </div>
                   <div class="user-info-value phone">{{ selectedUser!.phoneNumber }}</div>
                 </div>
-
                 <div class="user-info-item-compact">
                   <div class="user-info-label">
-                    <i class="pi pi-tag text-indigo-600 dark:text-indigo-400"></i>
+                    <i class="pi pi-tag text-indigo-600 dark:text-indigo-400 mr-2"></i>
                     Role
                   </div>
                   <div class="user-info-value">
