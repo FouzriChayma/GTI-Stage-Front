@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
   <!-- List Mode -->
   <div *ngIf="mode === 'list'" class="space-y-6">
-    <!-- Toolbar -->
+    <!-- Enhanced Toolbar -->
     <div class="enhanced-card hover-glow smooth-transition">
       <div class="enhanced-toolbar">
         <div class="toolbar-left">
@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <!-- User Table -->
+    <!-- Enhanced User Table -->
     <div class="enhanced-table-container">
       <p-table
         #dt
@@ -34,32 +34,64 @@
       >
         <ng-template pTemplate="header">
           <tr class="table-header">
-            <th class="table-header-cell">ID</th>
+            <th class="table-header-cell">
+              <i class="pi pi-image mr-2"></i> Photo
+            </th>
+            <th class="table-header-cell">
+              <i class="pi pi-id-card mr-2"></i>ID
+            </th>
             <th class="table-header-cell" pSortableColumn="email">
-              Email <p-sortIcon field="email"></p-sortIcon>
+              <i class="pi pi-envelope mr-2"></i>Email <p-sortIcon field="email"></p-sortIcon>
             </th>
             <th class="table-header-cell" pSortableColumn="firstName">
-              First Name <p-sortIcon field="firstName"></p-sortIcon>
+              <i class="pi pi-user mr-2"></i>First Name <p-sortIcon field="firstName"></p-sortIcon>
             </th>
             <th class="table-header-cell" pSortableColumn="lastName">
-              Last Name <p-sortIcon field="lastName"></p-sortIcon>
+              <i class="pi pi-user mr-2"></i>Last Name <p-sortIcon field="lastName"></p-sortIcon>
             </th>
             <th class="table-header-cell" pSortableColumn="phoneNumber">
-              Phone <p-sortIcon field="phoneNumber"></p-sortIcon>
+              <i class="pi pi-phone mr-2"></i>Phone <p-sortIcon field="phoneNumber"></p-sortIcon>
             </th>
             <th class="table-header-cell" pSortableColumn="role">
-              Role <p-sortIcon field="role"></p-sortIcon>
+              <i class="pi pi-tag mr-2"></i>Role <p-sortIcon field="role"></p-sortIcon>
             </th>
-            <th class="table-header-cell">Actions</th>
+            <th class="table-header-cell">
+              <i class="pi pi-cog mr-2"></i>Actions
+            </th>
           </tr>
         </ng-template>
+
         <ng-template pTemplate="body" let-user>
           <tr class="table-row">
-            <td class="table-cell font-mono text-sm">{{ user.id }}</td>
-            <td class="table-cell">{{ user.email }}</td>
+            <td class="table-cell">
+              <div class="flex items-center justify-center">
+                <img
+                  *ngIf="profilePhotoUrls[user.id]"
+                  [src]="profilePhotoUrls[user.id]"
+                  alt="Profile Photo"
+                  class="w-14 h-14 object-cover rounded-full border-2 border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all duration-200"
+                />
+                <div
+                  *ngIf="!profilePhotoUrls[user.id]"
+                  class="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 shadow-sm"
+                >
+                  <i class="pi pi-user text-gray-400 dark:text-gray-500 text-lg"></i>
+                </div>
+              </div>
+            </td>
+            <td class="table-cell">
+              <span class="font-mono text-sm text-gray-900 dark:text-gray-100">
+                {{ user.id }}
+              </span>
+            </td>
+            <td class="table-cell">
+              <span class="text-blue-600 dark:text-blue-400 font-medium">{{ user.email }}</span>
+            </td>
             <td class="table-cell">{{ user.firstName }}</td>
             <td class="table-cell">{{ user.lastName }}</td>
-            <td class="table-cell">{{ user.phoneNumber }}</td>
+            <td class="table-cell">
+              <span class="font-mono text-sm">{{ user.phoneNumber }}</span>
+            </td>
             <td class="table-cell">
               <span
                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
@@ -102,9 +134,10 @@
             </td>
           </tr>
         </ng-template>
+
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="7" class="table-cell text-center py-8">
+            <td colspan="8" class="table-cell text-center py-8">
               <div class="flex flex-col items-center">
                 <i class="pi pi-inbox text-4xl text-gray-400 mb-4"></i>
                 <p class="text-gray-500 dark:text-gray-400">No users found.</p>
@@ -118,208 +151,423 @@
 
   <!-- New/Edit Mode -->
   <div *ngIf="mode === 'new' || mode === 'edit'" class="space-y-6 fade-in smooth-transition">
-    <!-- Header -->
-    <div class="enhanced-card hover-glow smooth-transition">
-      <div class="enhanced-toolbar">
-        <div class="toolbar-left">
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {{ mode === 'new' ? 'New User' : 'Edit User' }}
-          </h3>
-        </div>
-        <div class="toolbar-right">
-          <button
-            pButton
-            pRipple
-            label="Save"
-            icon="pi pi-check"
-            class="btn-success smooth-transition hover-lift"
-            [disabled]="isSaving"
-            (click)="saveUser()"
-          ></button>
-          <button
-            pButton
-            pRipple
-            label="Cancel"
-            icon="pi pi-times"
-            class="btn-secondary smooth-transition hover-lift"
-            (click)="goBack()"
-          ></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Form -->
-    <div class="form-section hover-glow smooth-transition">
-      <h5 class="form-section-title">User Information</h5>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="form-field">
-          <label for="email" class="form-label form-required">Email</label>
-          <input
-            pInputText
-            id="email"
-            [(ngModel)]="formUser.email"
-            required
-            class="form-input"
-            placeholder="Enter email"
-          />
-        </div>
-        <div *ngIf="mode === 'new'" class="form-field">
-          <label for="password" class="form-label form-required">Password</label>
-          <input
-            pInputText
-            id="password"
-            type="password"
-            [(ngModel)]="formUser.password"
-            required
-            class="form-input"
-            placeholder="Enter password"
-          />
-        </div>
-        <div class="form-field">
-          <label for="firstName" class="form-label form-required">First Name</label>
-          <input
-            pInputText
-            id="firstName"
-            [(ngModel)]="formUser.firstName"
-            required
-            class="form-input"
-            placeholder="Enter first name"
-          />
-        </div>
-        <div class="form-field">
-          <label for="lastName" class="form-label form-required">Last Name</label>
-          <input
-            pInputText
-            id="lastName"
-            [(ngModel)]="formUser.lastName"
-            required
-            class="form-input"
-            placeholder="Enter last name"
-          />
-        </div>
-        <div class="form-field">
-          <label for="phoneNumber" class="form-label form-required">Phone Number</label>
-          <input
-            pInputText
-            id="phoneNumber"
-            [(ngModel)]="formUser.phoneNumber"
-            required
-            class="form-input"
-            placeholder="Enter phone number"
-          />
-        </div>
-        <div class="form-field">
-          <label for="role" class="form-label form-required">Role</label>
-          <p-dropdown
-            id="role"
-            [options]="roles"
-            [(ngModel)]="formUser.role"
-            optionLabel="label"
-            optionValue="value"
-            required
-            styleClass="w-full"
-            placeholder="Select role"
-          ></p-dropdown>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Details Mode -->
-  <div *ngIf="mode === 'details' && !isLoading" class="space-y-6 fade-in smooth-transition">
-    <!-- Header -->
-    <div class="enhanced-card hover-glow smooth-transition">
-      <div class="enhanced-toolbar">
-        <div class="toolbar-left">
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            User Details - {{ selectedUser!.email }}
-          </h3>
-        </div>
-        <div class="toolbar-right">
-          <button
-            pButton
-            pRipple
-            label="Edit"
-            icon="pi pi-pencil"
-            class="btn-info smooth-transition hover-lift"
-            (click)="editUser(selectedUser!)"
-          ></button>
-          <button
-            pButton
-            pRipple
-            label="Back"
-            icon="pi pi-arrow-left"
-            class="btn-secondary smooth-transition hover-lift"
-            (click)="goBack()"
-          ></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- User Details -->
-    <div class="form-section hover-glow smooth-transition">
-      <h5 class="form-section-title">User Information</h5>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="space-y-1">
-          <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
-            <i class="pi pi-id-card text-xs"></i>
-            ID
+    <!-- Enhanced Header -->
+    <div class="user-details-header">
+      <div class="user-details-header-content">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div class="user-details-title">
+            <div class="user-details-title-icon">
+              <i class="pi pi-user-plus text-blue-600 dark:text-blue-400"></i>
+            </div>
+            <div>
+              <h3 class="user-details-title-text">
+                {{ mode === 'new' ? 'New User' : 'Edit User' }}
+              </h3>
+              <p class="user-details-subtitle">
+                {{ mode === 'new' ? 'Create a new user account' : 'Update user information' }}
+              </p>
+            </div>
           </div>
-          <div class="text-base font-mono text-gray-900 dark:text-gray-100">{{ selectedUser!.id }}</div>
-        </div>
-        <div class="space-y-1">
-          <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
-            <i class="pi pi-envelope text-xs"></i>
-            Email
-          </div>
-          <div class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ selectedUser!.email }}</div>
-        </div>
-        <div class="space-y-1">
-          <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
-            <i class="pi pi-user text-xs"></i>
-            First Name
-          </div>
-          <div class="text-base text-gray-900 dark:text-gray-100">{{ selectedUser!.firstName }}</div>
-        </div>
-        <div class="space-y-1">
-          <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
-            <i class="pi pi-user text-xs"></i>
-            Last Name
-          </div>
-          <div class="text-base text-gray-900 dark:text-gray-100">{{ selectedUser!.lastName }}</div>
-        </div>
-        <div class="space-y-1">
-          <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
-            <i class="pi pi-phone text-xs"></i>
-            Phone Number
-          </div>
-          <div class="text-base text-gray-900 dark:text-gray-100">{{ selectedUser!.phoneNumber }}</div>
-        </div>
-        <div class="space-y-1">
-          <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
-            <i class="pi pi-tag text-xs"></i>
-            Role
-          </div>
-          <div class="text-base text-gray-900 dark:text-gray-100">
-            <span
-              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-              [ngClass]="{
-                'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': selectedUser!.role === 'CLIENT',
-                'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': selectedUser!.role === 'ADMINISTRATOR',
-                'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': selectedUser!.role === 'CHARGE_CLIENTELE'
-              }"
+          <div class="header-actions">
+            <button
+              pButton
+              pRipple
+              label="Save"
+              icon="pi pi-check"
+              class="header-btn header-btn-edit"
+              [disabled]="isSaving"
+              (click)="saveUser()"
             >
-              {{ selectedUser!.role }}
-            </span>
+              <i class="pi pi-spin pi-spinner" *ngIf="isSaving"></i>
+              <span>{{ isSaving ? 'Saving...' : 'Save' }}</span>
+            </button>
+            <button
+              pButton
+              pRipple
+              label="Cancel"
+              icon="pi pi-times"
+              class="header-btn header-btn-back"
+              (click)="goBack()"
+            ></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced Form with Equal Height Layout -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+      
+      <!-- Left Column: Profile & Info -->
+      <div class="space-y-6 h-full">
+        <!-- Profile Photo Card -->
+        <div class="enhanced-form-section h-auto">
+          <h5 class="enhanced-form-title">
+            <i class="pi pi-image text-blue-600 dark:text-blue-400"></i>
+             Photo
+          </h5>
+          
+          <div class="text-center space-y-4">
+            <div class="profile-photo-container group mx-auto">
+              <img
+                *ngIf="profilePhotoUrl"
+                [src]="profilePhotoUrl"
+                alt="Profile Photo Preview"
+                class="w-32 h-32 object-cover rounded-full border-4 border-white dark:border-gray-700 shadow-lg mx-auto"
+              />
+              <div *ngIf="!profilePhotoUrl" class="w-32 h-32 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 rounded-full border-4 border-white dark:border-gray-700 shadow-lg flex items-center justify-center mx-auto">
+                <i class="pi pi-user text-3xl text-gray-400 dark:text-gray-500"></i>
+              </div>
+              <div class="profile-photo-overlay">
+                <i class="pi pi-camera profile-photo-edit-icon"></i>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2 justify-center">
+              <p-fileUpload
+                mode="basic"
+                chooseLabel="Choose Photo"
+                [auto]="true"
+                accept="image/png,image/jpeg"
+                (onSelect)="onFileSelect($event)"
+                styleClass="choose-photo-btn"
+              ></p-fileUpload>
+
+              <button
+                *ngIf="mode === 'edit' && formUser.id && profilePhotoUrl"
+                pButton
+                pRipple
+                label="Delete"
+                icon="pi pi-trash"
+                class="delete-photo-btn"
+                (click)="deleteProfilePhoto(formUser.id)"
+              ></button>
+            </div>
+
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              PNG, JPEG (max 10MB)
+            </p>
+          </div>
+        </div>
+
+        <!-- User Info Preview (for edit mode) -->
+        <div *ngIf="mode === 'edit'" class="enhanced-form-section flex-1">
+          <h5 class="enhanced-form-title">
+            <i class="pi pi-info-circle text-blue-600 dark:text-blue-400"></i>
+            Current Info
+          </h5>
+          
+          <div class="space-y-3">
+            <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-id-card text-blue-600 dark:text-blue-400"></i>
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">ID</span>
+              </div>
+              <span class="text-sm font-mono text-gray-600 dark:text-gray-400">{{ formUser.id }}</span>
+            </div>
+            
+            <div class="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-tag text-green-600 dark:text-green-400"></i>
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Current Role</span>
+              </div>
+              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                    [ngClass]="{
+                      'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': formUser.role === 'CLIENT',
+                      'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': formUser.role === 'ADMINISTRATOR',
+                      'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': formUser.role === 'CHARGE_CLIENTELE'
+                    }">
+                {{ formUser.role }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        
+      </div>
+
+      <!-- Right Column: Form Fields -->
+      <div class="h-full">
+        <div class="enhanced-form-section h-full">
+          <h5 class="enhanced-form-title">
+            <i class="pi pi-user text-blue-600 dark:text-blue-400"></i>
+            User Information
+          </h5>
+
+          <!-- Form Fields Grid -->
+          <div class="space-y-6 stagger-animation">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div class="enhanced-form-field lg:col-span-2">
+                <label for="email" class="enhanced-form-label">
+                  <i class="pi pi-envelope text-blue-600 dark:text-blue-400"></i>
+                  Email Address
+                  <span class="required-indicator"></span>
+                </label>
+                <input
+                  pInputText
+                  id="email"
+                  [(ngModel)]="formUser.email"
+                  required
+                  class="enhanced-form-input"
+                  placeholder="Enter email address"
+                />
+                <small class="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
+                  This will be used for login and notifications
+                </small>
+              </div>
+
+              <div *ngIf="mode === 'new'" class="enhanced-form-field lg:col-span-2">
+                <label for="password" class="enhanced-form-label">
+                  <i class="pi pi-lock text-green-600 dark:text-green-400"></i>
+                  Password
+                  <span class="required-indicator"></span>
+                </label>
+                <input
+                  pInputText
+                  id="password"
+                  type="password"
+                  [(ngModel)]="formUser.password"
+                  required
+                  class="enhanced-form-input"
+                  placeholder="Enter secure password"
+                />
+                <small class="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
+                  Minimum 8 characters recommended
+                </small>
+              </div>
+
+              <div class="enhanced-form-field">
+                <label for="firstName" class="enhanced-form-label">
+                  <i class="pi pi-user text-purple-600 dark:text-purple-400"></i>
+                  First Name
+                  <span class="required-indicator"></span>
+                </label>
+                <input
+                  pInputText
+                  id="firstName"
+                  [(ngModel)]="formUser.firstName"
+                  required
+                  class="enhanced-form-input"
+                  placeholder="Enter first name"
+                />
+              </div>
+
+              <div class="enhanced-form-field">
+                <label for="lastName" class="enhanced-form-label">
+                  <i class="pi pi-user text-purple-600 dark:text-purple-400"></i>
+                  Last Name
+                  <span class="required-indicator"></span>
+                </label>
+                <input
+                  pInputText
+                  id="lastName"
+                  [(ngModel)]="formUser.lastName"
+                  required
+                  class="enhanced-form-input"
+                  placeholder="Enter last name"
+                />
+              </div>
+
+              <div class="enhanced-form-field">
+                <label for="phoneNumber" class="enhanced-form-label">
+                  <i class="pi pi-phone text-orange-600 dark:text-orange-400"></i>
+                  Phone Number
+                  <span class="required-indicator"></span>
+                </label>
+                <input
+                  pInputText
+                  id="phoneNumber"
+                  [(ngModel)]="formUser.phoneNumber"
+                  required
+                  class="enhanced-form-input"
+                  placeholder="Enter phone number"
+                />
+                <small class="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
+                  Include country code for international numbers
+                </small>
+              </div>
+
+              <div class="enhanced-form-field">
+                <label for="role" class="enhanced-form-label">
+                  <i class="pi pi-tag text-indigo-600 dark:text-indigo-400"></i>
+                  User Role
+                  <span class="required-indicator"></span>
+                </label>
+                <p-dropdown
+                  id="role"
+                  [options]="roles"
+                  [(ngModel)]="formUser.role"
+                  optionLabel="label"
+                  optionValue="value"
+                  required
+                  styleClass="w-full"
+                  placeholder="Select user role"
+                ></p-dropdown>
+                <small class="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
+                  Determines access permissions and capabilities
+                </small>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Loading State -->
+  <!-- Enhanced Details Mode -->
+  <div *ngIf="mode === 'details' && !isLoading" class="space-y-6 fade-in smooth-transition">
+    <!-- Enhanced Header -->
+    <div class="user-details-header">
+      <div class="user-details-header-content">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div class="user-details-title">
+            <div class="user-details-title-icon">
+              <i class="pi pi-user text-blue-600 dark:text-blue-400"></i>
+            </div>
+            <div>
+              <h3 class="user-details-title-text">User Details</h3>
+              <p class="user-details-subtitle">{{ selectedUser!.email }}</p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button
+              pButton
+              pRipple
+              label="Edit"
+              icon="pi pi-pencil"
+              class="header-btn header-btn-edit"
+              (click)="editUser(selectedUser!)"
+            ></button>
+            <button
+              pButton
+              pRipple
+              label="Back"
+              icon="pi pi-arrow-left"
+              class="header-btn header-btn-back"
+              (click)="goBack()"
+            ></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced User Information -->
+    <div class="enhanced-form-section slide-in-up">
+      <h5 class="enhanced-form-title">
+        <i class="pi pi-info-circle text-blue-600 dark:text-blue-400"></i>
+        User Information
+      </h5>
+
+      <div class="space-y-6">
+        <!-- Profile Photo Section - Compact Horizontal Layout -->
+        <div class="profile-photo-section">
+          <div class="profile-photo-horizontal">
+            <!-- Photo and Actions on Left -->
+            <div class="profile-photo-left">
+              <div class="profile-photo-container group">
+                <img
+                  *ngIf="profilePhotoUrl"
+                  [src]="profilePhotoUrl"
+                  alt="Profile Photo"
+                  class="profile-photo-compact"
+                />
+                <div *ngIf="!profilePhotoUrl" class="profile-photo-placeholder-compact">
+                  <i class="pi pi-user text-2xl text-gray-400 dark:text-gray-500"></i>
+                </div>
+              </div>
+
+              <div *ngIf="profilePhotoUrl && selectedUser!.id" class="profile-photo-actions-compact">
+                <button
+                  pButton
+                  pRipple
+                  label="Delete"
+                  icon="pi pi-trash"
+                  class="delete-photo-btn text-xs px-3 py-2"
+                  (click)="deleteProfilePhoto(selectedUser!.id)"
+                ></button>
+              </div>
+
+              <p *ngIf="!profilePhotoUrl" class="text-xs text-gray-500 dark:text-gray-400 text-center">
+                No photo
+              </p>
+            </div>
+
+            <!-- User Information on Right -->
+            <div class="profile-info-right">
+              <div class="user-info-grid-compact">
+                <div class="user-info-item-compact">
+                  <div class="user-info-label">
+                    <i class="pi pi-id-card text-gray-600 dark:text-gray-400"></i>
+                    ID
+                  </div>
+                  <div class="user-info-value id">{{ selectedUser!.id }}</div>
+                </div>
+
+                <div class="user-info-item-compact">
+                  <div class="user-info-label">
+                    <i class="pi pi-envelope text-blue-600 dark:text-blue-400"></i>
+                    Email
+                  </div>
+                  <div class="user-info-value email">{{ selectedUser!.email }}</div>
+                </div>
+
+                <div class="user-info-item-compact">
+                  <div class="user-info-label">
+                    <i class="pi pi-user text-purple-600 dark:text-purple-400"></i>
+                    First Name
+                  </div>
+                  <div class="user-info-value">{{ selectedUser!.firstName }}</div>
+                </div>
+
+                <div class="user-info-item-compact">
+                  <div class="user-info-label">
+                    <i class="pi pi-user text-purple-600 dark:text-purple-400"></i>
+                    Last Name
+                  </div>
+                  <div class="user-info-value">{{ selectedUser!.lastName }}</div>
+                </div>
+
+                <div class="user-info-item-compact">
+                  <div class="user-info-label">
+                    <i class="pi pi-phone text-orange-600 dark:text-orange-400"></i>
+                    Phone Number
+                  </div>
+                  <div class="user-info-value phone">{{ selectedUser!.phoneNumber }}</div>
+                </div>
+
+                <div class="user-info-item-compact">
+                  <div class="user-info-label">
+                    <i class="pi pi-tag text-indigo-600 dark:text-indigo-400"></i>
+                    Role
+                  </div>
+                  <div class="user-info-value">
+                    <span
+                      class="role-badge"
+                      [ngClass]="{
+                        'client': selectedUser!.role === 'CLIENT',
+                        'administrator': selectedUser!.role === 'ADMINISTRATOR',
+                        'charge-clientele': selectedUser!.role === 'CHARGE_CLIENTELE'
+                      }"
+                    >
+                      <i class="pi pi-shield mr-2" *ngIf="selectedUser!.role === 'ADMINISTRATOR'"></i>
+                      <i class="pi pi-user mr-2" *ngIf="selectedUser!.role === 'CLIENT'"></i>
+                      <i class="pi pi-users mr-2" *ngIf="selectedUser!.role === 'CHARGE_CLIENTELE'"></i>
+                      {{ selectedUser!.role }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enhanced Loading State -->
   <div *ngIf="isLoading" class="flex items-center justify-center py-12">
-    <p-progressSpinner></p-progressSpinner>
+    <div class="loading-overlay-enhanced">
+      <div class="loading-spinner-enhanced"></div>
+    </div>
   </div>
 
   <p-toast></p-toast>

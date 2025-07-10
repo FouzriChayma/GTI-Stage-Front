@@ -9,4 +9,5 @@ export interface User {
   isActive: boolean
   createdAt: string
   updatedAt: string
+  profilePhotoPath?: string
 }
