@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { TransferRequest } from '../models/transfer-request';
-import { Beneficiary } from '../models/beneficiary';
 import { Document } from '../models/document';
 
 @Injectable({
@@ -17,16 +16,26 @@ export class TransferRequestService {
     return this.http.get<TransferRequest[]>(this.apiUrl);
   }
 
-  searchTransferRequests(userId?: number, commissionAccountNumber?: string, transferType?: string, status?: string, amount?: number): Observable<TransferRequest[]> {
-    let params: Record<string, any> = {};
-    if (userId) params['userId'] = userId;
-    if (commissionAccountNumber) params['commissionAccountNumber'] = commissionAccountNumber;
-    if (transferType) params['transferType'] = transferType;
-    if (status) params['status'] = status;
-    if (amount) params['amount'] = amount;
+  searchTransferRequests(
+  userId?: number,
+  firstName?: string, // Replace userEmail with firstName
+  lastName?: string, // Add lastName
+  commissionAccountNumber?: string,
+  transferType?: string,
+  status?: string,
+  amount?: number
+): Observable<TransferRequest[]> {
+  let params = new HttpParams();
+  if (userId) params = params.set('userId', userId.toString());
+  if (firstName) params = params.set('firstName', firstName); // Update to firstName
+  if (lastName) params = params.set('lastName', lastName); // Add lastName
+  if (commissionAccountNumber) params = params.set('commissionAccountNumber', commissionAccountNumber);
+  if (transferType) params = params.set('transferType', transferType);
+  if (status) params = params.set('status', status);
+  if (amount) params = params.set('amount', amount.toString());
 
-    return this.http.get<TransferRequest[]>(`${this.apiUrl}/search`, { params });
-  }
+  return this.http.get<TransferRequest[]>(`${this.apiUrl}/search`, { params });
+}
 
   getTransferRequest(id: number): Observable<TransferRequest> {
     return this.http.get<TransferRequest>(`${this.apiUrl}/${id}`);
@@ -34,7 +43,7 @@ export class TransferRequestService {
 
   createTransferRequest(transferRequest: TransferRequest): Observable<TransferRequest> {
     const requestBody = {
-      userId: transferRequest.userId,
+      userId: transferRequest.user.id, // Extract userId from user object
       commissionAccountNumber: transferRequest.commissionAccountNumber,
       commissionAccountType: transferRequest.commissionAccountType,
       settlementAccountNumber: transferRequest.settlementAccountNumber,
@@ -57,13 +66,13 @@ export class TransferRequestService {
         bankAccount: transferRequest.beneficiary.bankAccount
       }
     };
-    return this.http.post<TransferRequest>(`${this.apiUrl}/no-document`, requestBody);
+    return this.http.post<TransferRequest>(`${this.apiUrl}/json`, requestBody); // Changed to /json endpoint
   }
 
   createTransferRequestWithDocument(transferRequest: TransferRequest, file: File): Observable<TransferRequest> {
     const formData = new FormData();
-    const transferRequestBlob = new Blob([JSON.stringify({
-      userId: transferRequest.userId,
+    const requestBody = {
+      userId: transferRequest.user.id, // Extract userId from user object
       commissionAccountNumber: transferRequest.commissionAccountNumber,
       commissionAccountType: transferRequest.commissionAccountType,
       settlementAccountNumber: transferRequest.settlementAccountNumber,
@@ -85,8 +94,8 @@ export class TransferRequestService {
         destinationBank: transferRequest.beneficiary.destinationBank,
         bankAccount: transferRequest.beneficiary.bankAccount
       }
-    })], { type: 'application/json' });
-    formData.append('transferRequest', transferRequestBlob);
+    };
+    formData.append('transferRequest', new Blob([JSON.stringify(requestBody)], { type: 'application/json' }));
     formData.append('document', file);
 
     for (const pair of formData.entries()) {
@@ -99,7 +108,7 @@ export class TransferRequestService {
 
   updateTransferRequest(id: number, transferRequest: TransferRequest): Observable<TransferRequest> {
     const requestBody = {
-      userId: transferRequest.userId,
+      userId: transferRequest.user.id, // Extract userId from user object
       commissionAccountNumber: transferRequest.commissionAccountNumber,
       commissionAccountType: transferRequest.commissionAccountType,
       settlementAccountNumber: transferRequest.settlementAccountNumber,
@@ -156,7 +165,7 @@ export class TransferRequestService {
     const formData = new FormData();
     formData.append('file', file);
     const url = `${this.apiUrl}/${transferRequestId}/documents`;
-    return this.http.post(url, formData, { responseType: 'text' as 'text' }) as Observable<string>;
+    return this.http.post(url, formData, { responseType: 'text' });
   }
 
   getDocuments(transferRequestId: number): Observable<Document[]> {
@@ -166,6 +175,7 @@ export class TransferRequestService {
   deleteDocument(transferRequestId: number, documentId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${transferRequestId}/documents/${documentId}`);
   }
+
   downloadDocument(transferRequestId: number, documentId: number): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/${transferRequestId}/documents/${documentId}/download`, {
       responseType: 'blob'

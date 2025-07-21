@@ -4,10 +4,11 @@ import { FeeType } from "./enums/fee-type.enum";
 import { TransferStatus } from "./enums/transfer-status.enum";
 import { Beneficiary } from "./beneficiary";
 import { Document } from "./document";
+import { User } from "./User";
 
 export interface TransferRequest {
   idTransferRequest?: number;
-    userId: number;
+    user: User; // Changed from userId: number
     commissionAccountNumber: string;
     commissionAccountType: string;
     settlementAccountNumber: string;

@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import type { User } from '../../../models/User';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, Observable } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MessageService, ConfirmationService } from 'primeng/api';
@@ -15,11 +15,9 @@ import { TableModule } from 'primeng/table';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { FileUploadModule } from 'primeng/fileupload';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { environment } from '../../../environments/environment';
 
-export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:8083/api/auth',
-};
+
 
 interface Role {
   label: string;
@@ -526,4 +524,8 @@ export class UserComponent implements OnInit {
       life: 3000,
     });
   }
+
+  getUserById(id: number): Observable<{ firstName: string, lastName: string }> {
+  return this.http.get<{ firstName: string, lastName: string }>(`${this.apiUrl}/users/${id}`);
+}
 }

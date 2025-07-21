@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.bg-gray-50 {
+  background-color: #f9fafb;
+}
+
+.dark .bg-gray-900 {
+  background-color: #111827;
+}
+
+.enhanced-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.dark .enhanced-card {
+  background: #1f2a44;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.enhanced-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.enhanced-card-body {
+  padding: 1rem;
+}
+
+.enhanced-form-field {
+  margin-bottom: 1.5rem;
+}
+
+.enhanced-form-label {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2a44;
+  margin-bottom: 0.5rem;
+}
+
+.dark .enhanced-form-label {
+  color: #e5e7eb;
+}
+
+.required-indicator::after {
+  content: '*';
+  color: #ef4444;
+  margin-left: 0.25rem;
+}
+
+.enhanced-form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.enhanced-form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dark .enhanced-form-input {
+  background: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+.dark .enhanced-form-input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+}
+
+.enhanced-btn-primary {
+  background: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.enhanced-btn-primary:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.enhanced-btn-primary:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+.dark .enhanced-btn-primary {
+  background: #60a5fa;
+}
+
+.dark .enhanced-btn-primary:hover {
+  background: #3b82f6;
+}
+
+.dark .enhanced-btn-primary:disabled {
+  background: #4b5563;
+}
+
+.p-error {
+  color: #ef4444;
+}
+
+.pi {
+  font-size: 1rem;
+}
+
+.p-checkbox .p-checkbox-box {
+  border-radius: 4px;
+}
+
+.p-checkbox .p-checkbox-box.p-highlight {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.dark .p-checkbox .p-checkbox-box.p-highlight {
+  background: #60a5fa;
+  border-color: #60a5fa;
+}
+
+.p-password input {
+  width: 100%;
+  border-radius: 8px;
+}

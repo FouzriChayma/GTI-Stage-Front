@@ -6,6 +6,7 @@ import { Landing } from './app/pages/landing/landing';
 import { Notfound } from './app/pages/notfound/notfound';
 import { TransferRequestComponent } from './app/components/transfer-request/transfer-request.component';
 import { UserComponent } from './app/components/user/user/user.component';
+import { LoginComponent } from './app/components/login/login.component';
 
 export const appRoutes: Routes = [
     {
@@ -21,6 +22,7 @@ export const appRoutes: Routes = [
         ]
     },
     { path: 'landing', component: Landing },
+    { path: 'login', component: LoginComponent },
     { path: 'notfound', component: Notfound },
     { path: 'auth', loadChildren: () => import('./app/pages/auth/auth.routes') },
     { path: '**', redirectTo: '/notfound' }
