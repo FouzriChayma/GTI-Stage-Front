@@ -18,6 +18,7 @@ export const appRoutes: Routes = [
             { path: 'transfer-requests', component: TransferRequestComponent },
             { path: 'documentation', component: Documentation },
             { path: 'users', component: UserComponent }, // Added route for UserComponent
+            { path: 'users/:id', component: UserComponent }, // Added route for user details with ID
             { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
         ]
     },

@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import type { User } from '../../../models/User';
 import { lastValueFrom, Observable } from 'rxjs';
@@ -16,8 +17,6 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { FileUploadModule } from 'primeng/fileupload';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { environment } from '../../../environments/environment';
-
-
 
 interface Role {
   label: string;
@@ -50,7 +49,7 @@ interface ActiveStatus {
 })
 export class UserComponent implements OnInit {
   mode: 'list' | 'new' | 'edit' | 'details' = 'list';
-  users: User[] = [];
+  users: User[] = []; // Initialized as empty array to avoid null
   selectedUser: User | null = null;
   formUser: User = this.resetFormUser();
   isLoading = false;
@@ -62,6 +61,7 @@ export class UserComponent implements OnInit {
   profilePhotoUrls: { [key: number]: SafeUrl | null } = {};
   filtersExpanded = true; // Initially expanded
   quickFilter: string | null = 'all';
+  userId: number | null = null;
 
   // Search form model
   searchCriteria = {
@@ -91,6 +91,8 @@ export class UserComponent implements OnInit {
   private apiUrl = environment.apiUrl;
 
   constructor(
+    private route: ActivatedRoute,
+    private router: Router,
     private http: HttpClient,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
@@ -98,8 +100,16 @@ export class UserComponent implements OnInit {
     private sanitizer: DomSanitizer
   ) {}
 
-  ngOnInit(): void {
-    this.loadUsers();
+  async ngOnInit(): Promise<void> {
+    this.route.paramMap.subscribe(params => {
+      this.userId = params.get('id') ? +params.get('id')! : null;
+      this.mode = this.userId ? 'details' : 'list';
+      if (this.userId) {
+        this.loadUserDetails(this.userId);
+      } else {
+        this.loadUsers();
+      }
+    });
   }
 
   private resetFormUser(): User {
@@ -132,11 +142,6 @@ export class UserComponent implements OnInit {
   setQuickFilter(filter: string): void {
     this.quickFilter = filter;
     this.searchCriteria.role = filter === 'all' ? null : filter.toUpperCase();
-    this.searchCriteria.email = '';
-    this.searchCriteria.firstName = '';
-    this.searchCriteria.lastName = '';
-    this.searchCriteria.phoneNumber = '';
-    this.searchCriteria.isActive = null;
     this.searchUsers();
   }
 
@@ -154,7 +159,7 @@ export class UserComponent implements OnInit {
     this.isLoading = true;
     try {
       const users = await lastValueFrom(this.http.get<User[]>(`${this.apiUrl}/users`));
-      this.users = users;
+      this.users = Array.isArray(users) ? users : []; // Ensure users is always an array
       for (const user of this.users) {
         if (user.profilePhotoPath) {
           await this.loadProfilePhotoForUser(user.id);
@@ -165,6 +170,7 @@ export class UserComponent implements OnInit {
       this.showSuccess('Users loaded successfully');
     } catch (err) {
       this.showError('Failed to load users', err);
+      this.users = []; // Reset to empty array on error
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();
@@ -182,8 +188,8 @@ export class UserComponent implements OnInit {
       if (this.searchCriteria.role) params = params.set('role', this.searchCriteria.role);
       if (this.searchCriteria.isActive !== null) params = params.set('isActive', this.searchCriteria.isActive.toString());
 
-      const users = await lastValueFrom(this.http.get<User[]>(`${this.apiUrl}/users/search`, { params }));
-      this.users = users;
+      const response = await lastValueFrom(this.http.get<any>(`${this.apiUrl}/users/search`, { params }));
+      this.users = Array.isArray(response) ? response : []; // Ensure users is always an array
       for (const user of this.users) {
         if (user.profilePhotoPath) {
           await this.loadProfilePhotoForUser(user.id);
@@ -191,9 +197,10 @@ export class UserComponent implements OnInit {
           this.profilePhotoUrls[user.id] = null;
         }
       }
-      this.showSuccess(users.length ? 'Users found' : 'No users found');
+      this.showSuccess(this.users.length ? 'Users found' : 'No users found');
     } catch (err) {
       this.showError('Search failed', err);
+      this.users = []; // Reset to empty array on error
     } finally {
       this.isSearching = false;
       this.cdr.detectChanges();
@@ -299,7 +306,7 @@ export class UserComponent implements OnInit {
             this.users[index].profilePhotoPath = '';
           }
           if (this.selectedUser?.id === userId) {
-            this.selectedUser.profilePhotoPath = '';
+            this.selectedUser!.profilePhotoPath = '';
           }
           this.profilePhotoUrl = null;
           this.profilePhotoUrls[userId] = null;
@@ -397,27 +404,25 @@ export class UserComponent implements OnInit {
     }
   }
 
-  viewDetails(id: number): void {
+  async loadUserDetails(id: number): Promise<void> {
     this.isLoading = true;
-    this.http.get<User>(`${this.apiUrl}/users/${id}`).subscribe({
-      next: async (user) => {
-        this.selectedUser = user;
-        this.mode = 'details';
-        if (user.profilePhotoPath) {
-          await this.loadProfilePhoto(user.id);
-        } else {
-          this.profilePhotoUrl = null;
-          this.profilePhotoUrls[id] = null;
-        }
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.showError('Failed to load user details', err);
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-    });
+    try {
+      const user = await lastValueFrom(this.http.get<User>(`${this.apiUrl}/users/${id}`));
+      this.selectedUser = user;
+      this.mode = 'details';
+      if (user.profilePhotoPath) {
+        await this.loadProfilePhoto(user.id);
+      } else {
+        this.profilePhotoUrl = null;
+        this.profilePhotoUrls[id] = null;
+      }
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    } catch (err) {
+      this.showError('Failed to load user details', err);
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
   }
 
   editUser(user: User): void {
@@ -466,7 +471,15 @@ export class UserComponent implements OnInit {
     this.formUser = this.resetFormUser();
     this.selectedFile = null;
     this.profilePhotoUrl = null;
+    this.userId = null;
+    this.router.navigate(['/users']);
     this.loadUsers();
+  }
+
+  async viewDetails(id: number): Promise<void> {
+    this.userId = id;
+    await this.loadUserDetails(id);
+    this.router.navigate([`/users/${id}`]);
   }
 
   private validateForm(): boolean {
@@ -526,6 +539,6 @@ export class UserComponent implements OnInit {
   }
 
   getUserById(id: number): Observable<{ firstName: string, lastName: string }> {
-  return this.http.get<{ firstName: string, lastName: string }>(`${this.apiUrl}/users/${id}`);
-}
+    return this.http.get<{ firstName: string, lastName: string }>(`${this.apiUrl}/users/${id}`);
+  }
 }

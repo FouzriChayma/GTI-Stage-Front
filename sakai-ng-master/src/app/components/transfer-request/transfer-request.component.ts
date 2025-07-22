@@ -861,4 +861,8 @@ export class TransferRequestComponent implements OnInit {
       this.cdr.detectChanges();
     }
   }
+
+  viewUserDetails(userId: number) {
+  this.router.navigate(['/users', userId]);
+}
 }

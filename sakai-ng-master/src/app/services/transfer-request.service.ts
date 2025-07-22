@@ -181,4 +181,7 @@ export class TransferRequestService {
       responseType: 'blob'
     });
   }
+  deleteMultipleTransferRequests(ids: number[]): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/batch`, { body: ids });
+  }
 }

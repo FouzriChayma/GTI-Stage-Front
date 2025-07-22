@@ -290,62 +290,62 @@
     </ng-template>
     
     <ng-template pTemplate="body" let-transferRequest>
-      <tr class="table-row">
-        <td class="table-cell">
-          <p-tableCheckbox [value]="transferRequest"></p-tableCheckbox>
-        </td>
-        <td class="table-cell font-mono text-sm">{{ transferRequest.idTransferRequest }}</td>
-        <td class="table-cell">{{ transferRequest.user.firstName }} {{ transferRequest.user.lastName }}</td> <!-- Combined User column -->
-        <td class="table-cell font-mono text-xs">{{ transferRequest.commissionAccountNumber }}</td>
-        <td class="table-cell">
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-            {{ transferRequest.transferType }}
-          </span>
-        </td>
-        <td class="table-cell font-semibold">{{ transferRequest.amount | currency: transferRequest.currency }}</td>
-        <td class="table-cell font-mono">{{ transferRequest.currency }}</td>
-        <td class="table-cell">
-          <span [class]="'status-badge status-' + (transferRequest.status?.toLowerCase() || 'pending')">
-            {{ transferRequest.status || 'PENDING' }}
-          </span>
-        </td>
-        <td class="table-cell">{{ transferRequest.beneficiary?.name }}</td>
-        <td class="table-cell">
-          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-            {{ transferRequest.documents?.length || 0 }} docs
-          </span>
-        </td>
-        <td class="table-cell">
-          <div class="action-buttons">
-            <button
-              pButton
-              pRipple
-              icon="pi pi-eye"
-              class="action-btn action-btn-view"
-              pTooltip="View Details"
-              (click)="viewDetails(transferRequest.idTransferRequest)">
-            </button>
-            <button
-              pButton
-              pRipple
-              icon="pi pi-pencil"
-              class="action-btn action-btn-edit"
-              [disabled]="isEditDisabled(transferRequest.status)"
-              [pTooltip]="isEditDisabled(transferRequest.status) ? 'Cannot edit: Transfer request is ' + transferRequest.status : 'Edit'"
-              (click)="editTransferRequest(transferRequest)">
-            </button>
-            <button
-              pButton
-              pRipple
-              icon="pi pi-trash"
-              class="action-btn action-btn-delete"
-              pTooltip="Delete"
-              (click)="deleteTransferRequest(transferRequest)">
-            </button>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
+  <tr class="table-row" (click)="viewUserDetails(transferRequest.user.id)" style="cursor: pointer;">
+    <td class="table-cell">
+      <p-tableCheckbox [value]="transferRequest"></p-tableCheckbox>
+    </td>
+    <td class="table-cell font-mono text-sm">{{ transferRequest.idTransferRequest }}</td>
+    <td class="table-cell">{{ transferRequest.user.firstName }} {{ transferRequest.user.lastName }}</td>
+    <td class="table-cell font-mono text-xs">{{ transferRequest.commissionAccountNumber }}</td>
+    <td class="table-cell">
+      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+        {{ transferRequest.transferType }}
+      </span>
+    </td>
+    <td class="table-cell font-semibold">{{ transferRequest.amount | currency: transferRequest.currency }}</td>
+    <td class="table-cell font-mono">{{ transferRequest.currency }}</td>
+    <td class="table-cell">
+      <span [class]="'status-badge status-' + (transferRequest.status?.toLowerCase() || 'pending')">
+        {{ transferRequest.status || 'PENDING' }}
+      </span>
+    </td>
+    <td class="table-cell">{{ transferRequest.beneficiary?.name }}</td>
+    <td class="table-cell">
+      <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+        {{ transferRequest.documents?.length || 0 }} docs
+      </span>
+    </td>
+    <td class="table-cell">
+      <div class="action-buttons">
+        <button
+          pButton
+          pRipple
+          icon="pi pi-eye"
+          class="action-btn action-btn-view"
+          pTooltip="View Details"
+          (click)="viewDetails(transferRequest.idTransferRequest); $event.stopPropagation();">
+        </button>
+        <button
+          pButton
+          pRipple
+          icon="pi pi-pencil"
+          class="action-btn action-btn-edit"
+          [disabled]="isEditDisabled(transferRequest.status)"
+          [pTooltip]="isEditDisabled(transferRequest.status) ? 'Cannot edit: Transfer request is ' + transferRequest.status : 'Edit'"
+          (click)="editTransferRequest(transferRequest); $event.stopPropagation();">
+        </button>
+        <button
+          pButton
+          pRipple
+          icon="pi pi-trash"
+          class="action-btn action-btn-delete"
+          pTooltip="Delete"
+          (click)="deleteTransferRequest(transferRequest); $event.stopPropagation();">
+        </button>
+      </div>
+    </td>
+  </tr>
+</ng-template>
     
     <ng-template pTemplate="emptymessage">
       <tr>
