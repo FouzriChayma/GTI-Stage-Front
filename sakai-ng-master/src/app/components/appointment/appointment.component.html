@@ -1,0 +1,640 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+  <!-- List Mode -->
+  <div *ngIf="mode === 'list'" class="space-y-6">
+    <!-- Toolbar -->
+    <div class="enhanced-card hover-glow smooth-transition">
+      <div class="enhanced-toolbar">
+        <div class="toolbar-left">
+          <button 
+            pButton 
+            pRipple 
+            label="New Appointment" 
+            icon="pi pi-plus" 
+            class="btn-success smooth-transition hover-lift"
+            (click)="openNew()">
+          </button>
+          <button
+            pButton
+            pRipple
+            label="Delete Selected"
+            icon="pi pi-trash"
+            class="btn-danger smooth-transition hover-lift"
+            [disabled]="!selectedAppointments?.length"
+            (click)="deleteSelectedAppointments()">
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Filters -->
+    <div class="enhanced-card hover-glow smooth-transition">
+      <div class="search-filters-header" (click)="toggleFilters()">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+            <i class="pi pi-filter text-blue-600 dark:text-blue-400"></i>
+          </div>
+          <div>
+            <h5 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Search Filters</h5>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ getActiveFiltersCount() }} filter(s) active</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="hidden md:flex items-center gap-2">
+            <span *ngIf="searchCriteria.userId" 
+                  class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+              <i class="pi pi-user mr-1 text-xs"></i>
+              User ID: {{ searchCriteria.userId }}
+            </span>
+            <span *ngIf="searchCriteria.status" 
+                  class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+              <i class="pi pi-tag mr-1 text-xs"></i>
+              {{ searchCriteria.status }}
+            </span>
+            <span *ngIf="searchCriteria.notes" 
+                  class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+              <i class="pi pi-comment mr-1 text-xs"></i>
+              Notes: {{ searchCriteria.notes }}
+            </span>
+            <span *ngIf="searchCriteria.isNotified !== null" 
+                  class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+              <i class="pi pi-bell mr-1 text-xs"></i>
+              Notified: {{ searchCriteria.isNotified ? 'Yes' : 'No' }}
+            </span>
+          </div>
+          <button 
+            type="button"
+            class="search-toggle-btn"
+            [class.expanded]="filtersExpanded">
+            <i class="pi" [class.pi-chevron-down]="!filtersExpanded" [class.pi-chevron-up]="filtersExpanded"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="search-filters-content" [class.expanded]="filtersExpanded">
+        <div class="enhanced-card-body">
+          <div class="flex flex-wrap items-center gap-3 mb-6 pb-4 border-b border-gray-200 dark:border-gray-600">
+            <button 
+              type="button"
+              class="quick-filter-btn"
+              [class.active]="quickFilter === 'scheduled'"
+              (click)="setQuickFilter('scheduled')">
+              <i class="pi pi-clock mr-2"></i>
+              Scheduled
+            </button>
+            <button 
+              type="button"
+              class="quick-filter-btn"
+              [class.active]="quickFilter === 'confirmed'"
+              (click)="setQuickFilter('confirmed')">
+              <i class="pi pi-check-circle mr-2"></i>
+              Confirmed
+            </button>
+            <button 
+              type="button"
+              class="quick-filter-btn"
+              [class.active]="quickFilter === 'today'"
+              (click)="setQuickFilter('today')">
+              <i class="pi pi-calendar mr-2"></i>
+              Today
+            </button>
+            <button 
+              type="button"
+              class="quick-filter-btn"
+              [class.active]="quickFilter === 'notified'"
+              (click)="setQuickFilter('notified')">
+              <i class="pi pi-bell mr-2"></i>
+              Notified
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="form-field">
+              <label for="searchUser" class="enhanced-form-label">
+                <i class="pi pi-user text-blue-600 dark:text-blue-400 mr-2"></i>
+                User
+              </label>
+              <div class="enhanced-input-wrapper">
+                <p-dropdown
+                  id="searchUser"
+                  [options]="users"
+                  [(ngModel)]="searchCriteria.userId"
+                  optionLabel="label"
+                  optionValue="value.id"
+                  placeholder="Select a user"
+                  styleClass="w-full enhanced-dropdown">
+                </p-dropdown>
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="searchStatus" class="enhanced-form-label">
+                <i class="pi pi-flag text-orange-600 dark:text-orange-400 mr-2"></i>
+                Status
+              </label>
+              <div class="enhanced-input-wrapper">
+                <p-dropdown
+                  id="searchStatus"
+                  [options]="statuses"
+                  [(ngModel)]="searchCriteria.status"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Select status"
+                  styleClass="w-full enhanced-dropdown">
+                </p-dropdown>
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="searchStartDate" class="enhanced-form-label">
+                <i class="pi pi-calendar text-blue-600 dark:text-blue-400 mr-2"></i>
+                Start Date
+              </label>
+              <div class="enhanced-input-wrapper">
+                <p-calendar
+                  id="searchStartDate"
+                  [(ngModel)]="searchCriteria.startDate"
+                  dateFormat="yy-mm-dd"
+                  placeholder="Select start date"
+                  styleClass="w-full enhanced-input">
+                </p-calendar>
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="searchEndDate" class="enhanced-form-label">
+                <i class="pi pi-calendar text-blue-600 dark:text-blue-400 mr-2"></i>
+                End Date
+              </label>
+              <div class="enhanced-input-wrapper">
+                <p-calendar
+                  id="searchEndDate"
+                  [(ngModel)]="searchCriteria.endDate"
+                  dateFormat="yy-mm-dd"
+                  placeholder="Select end date"
+                  styleClass="w-full enhanced-input">
+                </p-calendar>
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="searchNotes" class="enhanced-form-label">
+                <i class="pi pi-comment text-green-600 dark:text-green-400 mr-2"></i>
+                Notes
+              </label>
+              <div class="enhanced-input-wrapper">
+                <input
+                  pInputText
+                  id="searchNotes"
+                  [(ngModel)]="searchCriteria.notes"
+                  placeholder="Enter notes"
+                  class="enhanced-input"
+                />
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="searchIsNotified" class="enhanced-form-label">
+                <i class="pi pi-bell text-yellow-600 dark:text-yellow-400 mr-2"></i>
+                Notified
+              </label>
+              <div class="enhanced-input-wrapper">
+                <p-dropdown
+                  id="searchIsNotified"
+                  [options]="[{label: 'Yes', value: true}, {label: 'No', value: false}]"
+                  [(ngModel)]="searchCriteria.isNotified"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Select notification status"
+                  styleClass="w-full enhanced-dropdown">
+                </p-dropdown>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+              <i class="pi pi-info-circle"></i>
+              <span>{{ getTotalResults() }} results found</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <button 
+                pButton 
+                pRipple 
+                type="button"
+                class="enhanced-btn-secondary"
+                (click)="clearAllFilters()">
+                <i class="pi pi-times mr-2"></i>
+                Clear All
+              </button>
+              <button 
+                pButton 
+                pRipple 
+                type="button"
+                class="enhanced-btn-primary"
+                (click)="applyFilters()"
+                [disabled]="isSearching">
+                <i class="pi pi-search mr-2" *ngIf="!isSearching"></i>
+                <i class="pi pi-spin pi-spinner mr-2" *ngIf="isSearching"></i>
+                {{ isSearching ? 'Searching...' : 'Apply Filters' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Table -->
+    <div class="enhanced-table-container">
+      <p-table
+        #dt
+        [value]="appointments()"
+        [rows]="10"
+        [paginator]="true"
+        [globalFilterFields]="['idAppointment', 'user.firstName', 'user.lastName', 'appointmentDateTime', 'durationMinutes', 'status', 'notes', 'isNotified']"
+        [(selection)]="selectedAppointments"
+        [rowHover]="true"
+        dataKey="idAppointment"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        [rowsPerPageOptions]="[5, 10, 25]"
+        styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr class="table-header">
+            <th class="table-header-cell w-12">
+              <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+            </th>
+            <th *ngFor="let col of cols" [pSortableColumn]="col.field" class="table-header-cell">
+              {{ col.header }}
+              <p-sortIcon [field]="col.field"></p-sortIcon>
+            </th>
+            <th class="table-header-cell w-32">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-appointment>
+          <tr class="table-row"  style="cursor: pointer;">
+            <td class="table-cell">
+              <p-tableCheckbox [value]="appointment"></p-tableCheckbox>
+            </td>
+            <td class="table-cell font-mono text-sm">{{ appointment.idAppointment }}</td>
+            <td class="table-cell" (click)="viewUserDetails(appointment.user.id)" >{{ appointment.user.firstName }} {{ appointment.user.lastName }}</td>
+            <td class="table-cell">{{ appointment.appointmentDateTime | date:'medium' }}</td>
+            <td class="table-cell">{{ appointment.durationMinutes }} min</td>
+            <td class="table-cell">
+              <span [class]="'status-badge status-' + (appointment.status?.toLowerCase() || 'scheduled')">
+                {{ appointment.status || 'SCHEDULED' }}
+              </span>
+            </td>
+            <td class="table-cell">{{ appointment.notes || 'N/A' }}</td>
+            <td class="table-cell">{{ appointment.isNotified ? 'Yes' : 'No' }}</td>
+            <td class="table-cell">
+              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                {{ appointment.documents?.length || 0 }} docs
+              </span>
+            </td>
+            <td class="table-cell">
+              <div class="action-buttons">
+                <button
+                  pButton
+                  pRipple
+                  icon="pi pi-eye"
+                  class="action-btn action-btn-view"
+                  pTooltip="View Details"
+                  (click)="viewDetails(appointment.idAppointment); $event.stopPropagation();">
+                </button>
+                <button
+                  pButton
+                  pRipple
+                  icon="pi pi-pencil"
+                  class="action-btn action-btn-edit"
+                  [disabled]="isEditDisabled(appointment.status)"
+                  [pTooltip]="isEditDisabled(appointment.status) ? 'Cannot edit: Appointment is ' + appointment.status : 'Edit'"
+                  (click)="editAppointment(appointment); $event.stopPropagation();">
+                </button>
+                <button
+                  pButton
+                  pRipple
+                  icon="pi pi-trash"
+                  class="action-btn action-btn-delete"
+                  pTooltip="Cancel"
+                  (click)="deleteAppointment(appointment); $event.stopPropagation();">
+                </button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td [attr.colspan]="cols.length + 2" class="table-cell text-center py-8">
+              <div class="flex flex-col items-center">
+                <i class="pi pi-inbox text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-500 dark:text-gray-400">No appointments found.</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+
+  <!-- New/Edit Mode -->
+  <div *ngIf="mode === 'new' || mode === 'edit'" class="space-y-6 fade-in smooth-transition">
+    <div class="enhanced-card hover-glow smooth-transition">
+      <div class="enhanced-toolbar">
+        <div class="toolbar-left">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            {{ mode === 'new' ? 'New Appointment' : 'Edit Appointment' }}
+          </h3>
+        </div>
+        <div class="toolbar-right">
+          <button 
+            pButton 
+            pRipple 
+            label="Save" 
+            icon="pi pi-check" 
+            class="btn-success smooth-transition hover-lift"
+            [disabled]="isSaving" 
+            (click)="saveAppointment()">
+          </button>
+          <button 
+            pButton 
+            pRipple 
+            label="Cancel" 
+            icon="pi pi-times" 
+            class="btn-secondary smooth-transition hover-lift"
+            (click)="hideDialog()">
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="form-section hover-glow smooth-transition">
+        <h5 class="form-section-title">Appointment Information</h5>
+        <div class="space-y-4">
+          <div class="form-field">
+            <label for="user" class="form-label form-required">User</label>
+            <p-dropdown
+              id="user"
+              [options]="users"
+              [(ngModel)]="appointment.user"
+              optionLabel="label"
+              optionValue="value"
+              required
+              placeholder="Select a user"
+              styleClass="w-full">
+            </p-dropdown>
+          </div>
+          <div class="form-field">
+            <label for="appointmentDateTime" class="form-label form-required">Date & Time</label>
+            <p-calendar
+                id="appointmentDateTime"
+                [(ngModel)]="appointment.appointmentDateTime"
+                [showTime]="true"
+                hourFormat="24"
+                dateFormat="yy-mm-dd"
+                (onSelect)="loadAvailableSlots(appointment.appointmentDateTime)"
+                required
+                styleClass="w-full">
+            </p-calendar>
+          </div>
+          <div class="form-field">
+            <label for="duration" class="form-label form-required">Duration</label>
+            <p-dropdown
+              id="duration"
+              [options]="durationOptions"
+              [(ngModel)]="appointment.durationMinutes"
+              optionLabel="label"
+              optionValue="value"
+              required
+              styleClass="w-full">
+            </p-dropdown>
+          </div>
+          <div class="form-field">
+            <label for="status" class="form-label form-required">Status</label>
+            <p-dropdown
+              id="status"
+              [options]="statuses"
+              [(ngModel)]="appointment.status"
+              optionLabel="label"
+              optionValue="value"
+              required
+              styleClass="w-full">
+            </p-dropdown>
+          </div>
+          <div class="form-field">
+            <label for="notes" class="form-label">Notes</label>
+            <input
+              pInputText
+              id="notes"
+              [(ngModel)]="appointment.notes"
+              [maxlength]="255"
+              class="form-input"
+              placeholder="Enter notes (optional)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section hover-glow smooth-transition">
+        <h5 class="form-section-title">Documents</h5>
+        <div class="file-upload-area">
+          <p-fileUpload
+            [multiple]="true"
+            [maxFileSize]="1000000"
+            accept="application/pdf,image/*"
+            (onSelect)="onFileSelected($event)"
+            [customUpload]="true"
+            [files]="selectedFiles">
+          </p-fileUpload>
+        </div>
+        <div *ngIf="appointment.documents?.length" class="mt-4 space-y-2">
+          <h6 class="text-sm font-medium text-gray-700 dark:text-gray-300">Uploaded Documents</h6>
+          <div *ngFor="let doc of appointment.documents" class="file-item">
+            <span class="file-name">{{ doc.fileName }}</span>
+            <button
+              pButton
+              pRipple
+              icon="pi pi-trash"
+              class="action-btn action-btn-delete"
+              (click)="deleteDocument(doc.idDocument)">
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details Mode -->
+  <div *ngIf="mode === 'details'" class="space-y-6 fade-in smooth-transition">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+              <i class="pi pi-calendar text-blue-600 dark:text-blue-400 text-lg"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Appointment Details</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">ID: {{ appointment.idAppointment }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <button
+              *ngIf="!isEditDisabled(appointment.status)"
+              pButton
+              pRipple
+              label="Edit"
+              icon="pi pi-pencil"
+              class="btn-info smooth-transition"
+              [disabled]="isLoading"
+              (click)="editAppointment(appointment)">
+            </button>
+            <button
+              pButton
+              pRipple
+              label="Back"
+              icon="pi pi-arrow-left"
+              class="btn-secondary smooth-transition"
+              (click)="goBack()">
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!isLoading; else loadingTemplate" class="space-y-6">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h5 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <i class="pi pi-info-circle text-blue-600 dark:text-blue-400"></i>
+            Status Overview
+          </h5>
+          <span [class]="'status-badge status-' + (appointment.status.toLowerCase() || 'scheduled')">
+            {{ appointment.status || 'SCHEDULED' }}
+          </span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-2">
+              <i class="pi pi-calendar text-blue-600 dark:text-blue-400 text-xl"></i>
+            </div>
+            <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              {{ appointment.appointmentDateTime | date:'medium' }}
+            </div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">Date & Time</div>
+          </div>
+          <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-2">
+              <i class="pi pi-file text-purple-600 dark:text-purple-400 text-xl"></i>
+            </div>
+            <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              {{ appointment.documents?.length || 0 }}
+            </div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">Documents</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h5 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <i class="pi pi-user text-blue-600 dark:text-blue-400"></i>
+            Appointment Information
+          </h5>
+        </div>
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <i class="pi pi-id-card text-xs"></i>
+                User
+              </div>
+              <div class="text-base font-semibold text-gray-900 dark:text-gray-100">
+                {{ appointment.user.firstName }} {{ appointment.user.lastName }} ({{ appointment.user.email }})
+              </div>
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <i class="pi pi-calendar text-xs"></i>
+                Date & Time
+              </div>
+              <div class="text-base text-gray-900 dark:text-gray-100">
+                {{ appointment.appointmentDateTime | date:'medium' }}
+              </div>
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <i class="pi pi-clock text-xs"></i>
+                Duration
+              </div>
+              <div class="text-base text-gray-900 dark:text-gray-100">
+                {{ appointment.durationMinutes }} minutes
+              </div>
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <i class="pi pi-comment text-xs"></i>
+                Notes
+              </div>
+              <div class="text-base text-gray-900 dark:text-gray-100">
+                {{ appointment.notes || 'N/A' }}
+              </div>
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <i class="pi pi-bell text-xs"></i>
+                Notified
+              </div>
+              <div class="text-base text-gray-900 dark:text-gray-100">
+                {{ appointment.isNotified ? 'Yes' : 'No' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h5 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <i class="pi pi-file text-purple-600 dark:text-purple-400"></i>
+            Documents
+          </h5>
+        </div>
+        <div class="p-6">
+          <div *ngIf="appointment.documents?.length; else noDocuments" class="space-y-4">
+            <div *ngFor="let doc of appointment.documents" class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ doc.fileName }}</span>
+              <div class="space-x-2">
+                <button
+                  pButton
+                  pRipple
+                  icon="pi pi-eye"
+                  class="action-btn action-btn-view"
+                  pTooltip="View"
+                  (click)="openDocument(doc.idDocument, doc.fileName)">
+                </button>
+                <button
+                  pButton
+                  pRipple
+                  icon="pi pi-download"
+                  class="action-btn action-btn-download"
+                  pTooltip="Download"
+                  (click)="downloadDocument(doc.idDocument, doc.fileName)">
+                </button>
+              </div>
+            </div>
+          </div>
+          <ng-template #noDocuments>
+            <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+              <i class="pi pi-file-o text-4xl mb-2"></i>
+              <p>No documents uploaded.</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #loadingTemplate>
+      <div class="flex items-center justify-center h-64">
+        <p-progressSpinner [style]="{width: '50px', height: '50px'}" styleClass="text-blue-600 dark:text-blue-400">
+        </p-progressSpinner>
+        <p class="ml-4 text-lg text-gray-600 dark:text-gray-300">Loading appointment details...</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

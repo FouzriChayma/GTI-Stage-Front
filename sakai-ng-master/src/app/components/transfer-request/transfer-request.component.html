@@ -290,12 +290,12 @@
     </ng-template>
     
     <ng-template pTemplate="body" let-transferRequest>
-  <tr class="table-row" (click)="viewUserDetails(transferRequest.user.id)" style="cursor: pointer;">
+  <tr class="table-row"  style="cursor: pointer;">
     <td class="table-cell">
       <p-tableCheckbox [value]="transferRequest"></p-tableCheckbox>
     </td>
     <td class="table-cell font-mono text-sm">{{ transferRequest.idTransferRequest }}</td>
-    <td class="table-cell">{{ transferRequest.user.firstName }} {{ transferRequest.user.lastName }}</td>
+    <td class="table-cell" (click)="viewUserDetails(transferRequest.user.id)">{{ transferRequest.user.firstName }} {{ transferRequest.user.lastName }}</td>
     <td class="table-cell font-mono text-xs">{{ transferRequest.commissionAccountNumber }}</td>
     <td class="table-cell">
       <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">

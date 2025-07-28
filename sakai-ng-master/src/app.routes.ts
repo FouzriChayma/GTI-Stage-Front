@@ -7,6 +7,9 @@ import { Notfound } from './app/pages/notfound/notfound';
 import { TransferRequestComponent } from './app/components/transfer-request/transfer-request.component';
 import { UserComponent } from './app/components/user/user/user.component';
 import { LoginComponent } from './app/components/login/login.component';
+import { AppointmentComponent } from './app/components/appointment/appointment.component';
+import { HomeComponent } from './app/components/home/home.component';
+import { TransferRequestFormComponent } from './app/components/transfer-request-form/transfer-request-form.component';
 
 export const appRoutes: Routes = [
     {
@@ -19,11 +22,14 @@ export const appRoutes: Routes = [
             { path: 'documentation', component: Documentation },
             { path: 'users', component: UserComponent }, // Added route for UserComponent
             { path: 'users/:id', component: UserComponent }, // Added route for user details with ID
+            { path: 'appointments', component: AppointmentComponent },
             { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
         ]
     },
     { path: 'landing', component: Landing },
     { path: 'login', component: LoginComponent },
+    { path: 'home', component: HomeComponent },
+    { path: 'InitialTransfer', component: TransferRequestFormComponent },
     { path: 'notfound', component: Notfound },
     { path: 'auth', loadChildren: () => import('./app/pages/auth/auth.routes') },
     { path: '**', redirectTo: '/notfound' }
