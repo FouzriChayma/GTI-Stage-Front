@@ -1,19 +1,93 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { Appointment } from '../models/appointment';
-import { Document } from '../models/document';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AppointmentService {
-  private apiUrl = 'http://localhost:8083/api/appointments';
+  private apiUrl = '/api/appointments';
 
   constructor(private http: HttpClient) {}
 
-  getAppointments(): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(this.apiUrl);
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+    return new HttpHeaders({
+      Authorization: token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+  }
+
+  createAppointment(appointment: Appointment): Observable<Appointment> {
+    return this.http
+      .post<Appointment>(this.apiUrl, appointment, { headers: this.getHeaders(), responseType: 'json' })
+      .pipe(
+        catchError((error) => {
+          console.error('Error creating appointment:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  updateAppointment(id: number, appointment: Appointment): Observable<Appointment> {
+    return this.http
+      .put<Appointment>(`${this.apiUrl}/${id}`, appointment, { headers: this.getHeaders(), responseType: 'json' })
+      .pipe(
+        catchError((error) => {
+          console.error(`Error updating appointment ${id}:`, error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  cancelAppointment(id: number): Observable<void> {
+    return this.http
+      .delete<void>(`${this.apiUrl}/${id}`, { headers: this.getHeaders(), responseType: 'json' })
+      .pipe(
+        catchError((error) => {
+          console.error(`Error cancelling appointment ${id}:`, error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  getAppointment(id: number): Observable<Appointment> {
+    return this.http
+      .get<Appointment>(`${this.apiUrl}/${id}`, { headers: this.getHeaders(), responseType: 'json' })
+      .pipe(
+        catchError((error) => {
+          console.error(`Error fetching appointment ${id}:`, error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  getAvailableSlots(start: string, end: string): Observable<Appointment[]> {
+    const params = new HttpParams().set('start', start).set('end', end);
+    return this.http
+      .get<Appointment[]>(`${this.apiUrl}/available`, { headers: this.getHeaders(), params, responseType: 'json' })
+      .pipe(
+        map((data) => data || []),
+        catchError((error) => {
+          console.error('Error fetching available slots:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  getUserAppointments(userId: number): Observable<Appointment[]> {
+    return this.http
+      .get<Appointment[]>(`${this.apiUrl}/user/${userId}`, { headers: this.getHeaders(), responseType: 'json' })
+      .pipe(
+        map((data) => data || []),
+        catchError((error) => {
+          console.error(`Error fetching user appointments for user ${userId}:`, error);
+          return throwError(() => error);
+        })
+      );
   }
 
   searchAppointments(
@@ -32,77 +106,14 @@ export class AppointmentService {
     if (notes) params = params.set('notes', notes);
     if (isNotified !== undefined) params = params.set('isNotified', isNotified.toString());
 
-    return this.http.get<Appointment[]>(`${this.apiUrl}/search`, { params });
-  }
-
-  getAppointment(id: number): Observable<Appointment> {
-    return this.http.get<Appointment>(`${this.apiUrl}/${id}`);
-  }
-
-  createAppointment(appointment: Appointment): Observable<Appointment> {
-    const requestBody = {
-      userId: appointment.user.id,
-      appointmentDateTime: appointment.appointmentDateTime,
-      durationMinutes: appointment.durationMinutes,
-      notes: appointment.notes
-    };
-    return this.http.post<Appointment>(this.apiUrl, requestBody);
-  }
-
-  createAppointmentWithDocument(appointment: Appointment, file: File): Observable<Appointment> {
-    const formData = new FormData();
-    const requestBody = {
-      userId: appointment.user.id,
-      appointmentDateTime: appointment.appointmentDateTime,
-      durationMinutes: appointment.durationMinutes,
-      notes: appointment.notes
-    };
-    formData.append('appointment', new Blob([JSON.stringify(requestBody)], { type: 'application/json' }));
-    formData.append('document', file);
-    return this.http.post<Appointment>(this.apiUrl, formData);
-  }
-
-  updateAppointment(id: number, appointment: Appointment): Observable<Appointment> {
-    const requestBody = {
-      userId: appointment.user.id,
-      appointmentDateTime: appointment.appointmentDateTime,
-      durationMinutes: appointment.durationMinutes,
-      notes: appointment.notes,
-      status: appointment.status
-    };
-    return this.http.put<Appointment>(`${this.apiUrl}/${id}`, requestBody);
-  }
-
-  cancelAppointment(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
-  }
-
-  getAvailableSlots(start: string, end: string): Observable<Appointment[]> {
-    let params = new HttpParams()
-      .set('start', start)
-      .set('end', end);
-    return this.http.get<Appointment[]>(`${this.apiUrl}/available`, { params });
-  }
-
-  uploadDocument(appointmentId: number, file: File): Observable<string> {
-    const formData = new FormData();
-    formData.append('file', file);
-    return this.http.post(`${this.apiUrl}/${appointmentId}/documents`, formData, { responseType: 'text' });
-  }
-
-  getDocuments(appointmentId: number): Observable<Document[]> {
-    return this.http.get<Document[]>(`${this.apiUrl}/${appointmentId}/documents`);
-  }
-
-  deleteDocument(appointmentId: number, documentId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${appointmentId}/documents/${documentId}`);
-  }
-
-  downloadDocument(appointmentId: number, documentId: number): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/${appointmentId}/documents/${documentId}/download`, { responseType: 'blob' });
-  }
-
-  deleteMultipleAppointments(ids: number[]): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/batch`, { body: ids });
+    return this.http
+      .get<Appointment[]>(`${this.apiUrl}/search`, { headers: this.getHeaders(), params, responseType: 'json' })
+      .pipe(
+        map((data) => data || []),
+        catchError((error) => {
+          console.error('Error searching appointments:', error);
+          return throwError(() => error);
+        })
+      );
   }
 }

@@ -1,0 +1,91 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+  <div *ngIf="!isLoading; else loadingTemplate" class="space-y-6 fade-in smooth-transition">
+    <div class="enhanced-card hover-glow smooth-transition">
+      <div class="enhanced-toolbar">
+        <div class="toolbar-left">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            Schedule New Meeting
+          </h3>
+        </div>
+        <div class="toolbar-right">
+          <button 
+            pButton 
+            pRipple 
+            label="Save" 
+            icon="pi pi-check" 
+            class="btn-success smooth-transition hover-lift"
+            [disabled]="isSaving" 
+            (click)="saveAppointment()">
+          </button>
+          <button 
+            pButton 
+            pRipple 
+            label="Cancel" 
+            icon="pi pi-times" 
+            class="btn-secondary smooth-transition hover-lift"
+            (click)="cancel()">
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6">
+      <div class="form-section hover-glow smooth-transition">
+        <h5 class="form-section-title">Appointment Information</h5>
+        <div class="space-y-4">
+          <div class="form-field">
+            <label class="form-label">User</label>
+            <div *ngIf="currentUser" class="text-base text-gray-900 dark:text-gray-100">
+              {{ currentUser.firstName }} {{ currentUser.lastName }} ({{ currentUser.email }})
+            </div>
+            <div *ngIf="!currentUser && !isLoading" class="text-red-500">User data not loaded</div>
+          </div>
+          <div class="form-field">
+            <label for="appointmentDateTime" class="form-label form-required">Date & Time</label>
+            <p-calendar
+              id="appointmentDateTime"
+              [(ngModel)]="appointment.appointmentDateTime"
+              [showTime]="true"
+              hourFormat="24"
+              dateFormat="yy-mm-dd"
+              (onSelect)="loadAvailableSlots($event)"
+              required
+              styleClass="w-full"
+              [minDate]="minDate">
+            </p-calendar>
+          </div>
+          <div class="form-field">
+            <label for="duration" class="form-label form-required">Duration</label>
+            <p-dropdown
+              id="duration"
+              [options]="durationOptions"
+              [(ngModel)]="appointment.durationMinutes"
+              optionLabel="label"
+              optionValue="value"
+              required
+              styleClass="w-full">
+            </p-dropdown>
+          </div>
+          <div class="form-field">
+            <label for="notes" class="form-label">Notes</label>
+            <input
+              pInputText
+              id="notes"
+              [(ngModel)]="appointment.notes"
+              [maxlength]="255"
+              class="form-input"
+              placeholder="Enter notes (optional)"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #loadingTemplate>
+    <div class="flex items-center justify-center h-64">
+      <p-progressSpinner [style]="{width: '50px', height: '50px'}" styleClass="text-blue-600 dark:text-blue-400"></p-progressSpinner>
+      <p class="ml-4 text-lg text-gray-600 dark:text-gray-300">Loading...</p>
+    </div>
+  </ng-template>
+</div>

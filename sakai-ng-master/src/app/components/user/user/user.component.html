@@ -108,7 +108,7 @@
             Role
           </label>
           <div class="enhanced-input-wrapper">
-            <p-dropdown
+            <p-select
               id="searchRole"
               [options]="roles"
               [(ngModel)]="searchCriteria.role"
@@ -116,7 +116,7 @@
               optionValue="value"
               placeholder="Select role"
               styleClass="w-full enhanced-dropdown"
-            ></p-dropdown>
+            ></p-select>
           </div>
         </div>
         <div class="form-field">
@@ -140,7 +140,7 @@
             Status
           </label>
           <div class="enhanced-input-wrapper">
-            <p-dropdown
+            <p-select
               id="searchIsActive"
               [options]="activeStatuses"
               [(ngModel)]="searchCriteria.isActive"
@@ -148,7 +148,7 @@
               optionValue="value"
               placeholder="Select status"
               styleClass="w-full enhanced-dropdown"
-            ></p-dropdown>
+            ></p-select>
           </div>
         </div>
         <div class="form-field">
@@ -636,7 +636,7 @@
                   User Role
                   <span class="required-indicator"></span>
                 </label>
-                <p-dropdown
+                <p-select
                   id="role"
                   [options]="roles"
                   [(ngModel)]="formUser.role"
@@ -645,7 +645,7 @@
                   required
                   styleClass="w-full"
                   placeholder="Select user role"
-                ></p-dropdown>
+                ></p-select>
                 <small class="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
                   Determines access permissions and capabilities
                 </small>

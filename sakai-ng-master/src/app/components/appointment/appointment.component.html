@@ -4,25 +4,27 @@
     <!-- Toolbar -->
     <div class="enhanced-card hover-glow smooth-transition">
       <div class="enhanced-toolbar">
-        <div class="toolbar-left">
-          <button 
-            pButton 
-            pRipple 
-            label="New Appointment" 
-            icon="pi pi-plus" 
-            class="btn-success smooth-transition hover-lift"
-            (click)="openNew()">
-          </button>
-          <button
-            pButton
-            pRipple
-            label="Delete Selected"
-            icon="pi pi-trash"
-            class="btn-danger smooth-transition hover-lift"
-            [disabled]="!selectedAppointments?.length"
-            (click)="deleteSelectedAppointments()">
-          </button>
-        </div>
+        <!-- Replace the Cancel Selected button in the toolbar -->
+<div class="toolbar-left">
+  <button 
+    pButton 
+    pRipple 
+    label="New Appointment" 
+    icon="pi pi-plus" 
+    class="btn-success smooth-transition hover-lift"
+    (click)="openNew()">
+  </button>
+  <!-- Changed from !selectedAppointments?.length -->
+  <button
+    pButton
+    pRipple
+    label="Cancel Selected"
+    icon="pi pi-times"
+    class="btn-danger smooth-transition hover-lift"
+    [disabled]="selectedAppointments.length === 0"
+    (click)="cancelSelectedAppointments()">
+  </button>
+</div>
       </div>
     </div>
 
@@ -266,12 +268,12 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-appointment>
-          <tr class="table-row"  style="cursor: pointer;">
+          <tr class="table-row" style="cursor: pointer;">
             <td class="table-cell">
               <p-tableCheckbox [value]="appointment"></p-tableCheckbox>
             </td>
             <td class="table-cell font-mono text-sm">{{ appointment.idAppointment }}</td>
-            <td class="table-cell" (click)="viewUserDetails(appointment.user.id)" >{{ appointment.user.firstName }} {{ appointment.user.lastName }}</td>
+            <td class="table-cell" (click)="viewUserDetails(appointment.user.id)">{{ appointment.user.firstName }} {{ appointment.user.lastName }}</td>
             <td class="table-cell">{{ appointment.appointmentDateTime | date:'medium' }}</td>
             <td class="table-cell">{{ appointment.durationMinutes }} min</td>
             <td class="table-cell">
@@ -281,11 +283,6 @@
             </td>
             <td class="table-cell">{{ appointment.notes || 'N/A' }}</td>
             <td class="table-cell">{{ appointment.isNotified ? 'Yes' : 'No' }}</td>
-            <td class="table-cell">
-              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-                {{ appointment.documents?.length || 0 }} docs
-              </span>
-            </td>
             <td class="table-cell">
               <div class="action-buttons">
                 <button
@@ -308,10 +305,11 @@
                 <button
                   pButton
                   pRipple
-                  icon="pi pi-trash"
-                  class="action-btn action-btn-delete"
+                  icon="pi pi-times"
+                  class="action-btn action-btn-cancel"
                   pTooltip="Cancel"
-                  (click)="deleteAppointment(appointment); $event.stopPropagation();">
+                  [disabled]="appointment.status === 'CANCELLED' || appointment.status === 'COMPLETED'"
+                  (click)="cancelAppointment(appointment); $event.stopPropagation();">
                 </button>
               </div>
             </td>
@@ -362,7 +360,7 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 gap-6">
       <div class="form-section hover-glow smooth-transition">
         <h5 class="form-section-title">Appointment Information</h5>
         <div class="space-y-4">
@@ -376,20 +374,22 @@
               optionValue="value"
               required
               placeholder="Select a user"
-              styleClass="w-full">
+              styleClass="w-full"
+              (onChange)="onUserChange($event)">
             </p-dropdown>
           </div>
           <div class="form-field">
             <label for="appointmentDateTime" class="form-label form-required">Date & Time</label>
             <p-calendar
-                id="appointmentDateTime"
-                [(ngModel)]="appointment.appointmentDateTime"
-                [showTime]="true"
-                hourFormat="24"
-                dateFormat="yy-mm-dd"
-                (onSelect)="loadAvailableSlots(appointment.appointmentDateTime)"
-                required
-                styleClass="w-full">
+              id="appointmentDateTime"
+              [(ngModel)]="appointment.appointmentDateTime"
+              [showTime]="true"
+              hourFormat="24"
+              dateFormat="yy-mm-dd"
+              (onSelect)="loadAvailableSlots($event)"
+              required
+              styleClass="w-full"
+              [minDate]="minDate">
             </p-calendar>
           </div>
           <div class="form-field">
@@ -426,33 +426,6 @@
               class="form-input"
               placeholder="Enter notes (optional)"
             />
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section hover-glow smooth-transition">
-        <h5 class="form-section-title">Documents</h5>
-        <div class="file-upload-area">
-          <p-fileUpload
-            [multiple]="true"
-            [maxFileSize]="1000000"
-            accept="application/pdf,image/*"
-            (onSelect)="onFileSelected($event)"
-            [customUpload]="true"
-            [files]="selectedFiles">
-          </p-fileUpload>
-        </div>
-        <div *ngIf="appointment.documents?.length" class="mt-4 space-y-2">
-          <h6 class="text-sm font-medium text-gray-700 dark:text-gray-300">Uploaded Documents</h6>
-          <div *ngFor="let doc of appointment.documents" class="file-item">
-            <span class="file-name">{{ doc.fileName }}</span>
-            <button
-              pButton
-              pRipple
-              icon="pi pi-trash"
-              class="action-btn action-btn-delete"
-              (click)="deleteDocument(doc.idDocument)">
-            </button>
           </div>
         </div>
       </div>
@@ -518,15 +491,6 @@
             </div>
             <div class="text-sm text-gray-500 dark:text-gray-400">Date & Time</div>
           </div>
-          <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-2">
-              <i class="pi pi-file text-purple-600 dark:text-purple-400 text-xl"></i>
-            </div>
-            <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {{ appointment.documents?.length || 0 }}
-            </div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">Documents</div>
-          </div>
         </div>
       </div>
 
@@ -585,46 +549,6 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h5 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-            <i class="pi pi-file text-purple-600 dark:text-purple-400"></i>
-            Documents
-          </h5>
-        </div>
-        <div class="p-6">
-          <div *ngIf="appointment.documents?.length; else noDocuments" class="space-y-4">
-            <div *ngFor="let doc of appointment.documents" class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ doc.fileName }}</span>
-              <div class="space-x-2">
-                <button
-                  pButton
-                  pRipple
-                  icon="pi pi-eye"
-                  class="action-btn action-btn-view"
-                  pTooltip="View"
-                  (click)="openDocument(doc.idDocument, doc.fileName)">
-                </button>
-                <button
-                  pButton
-                  pRipple
-                  icon="pi pi-download"
-                  class="action-btn action-btn-download"
-                  pTooltip="Download"
-                  (click)="downloadDocument(doc.idDocument, doc.fileName)">
-                </button>
-              </div>
-            </div>
-          </div>
-          <ng-template #noDocuments>
-            <div class="text-center py-8 text-gray-500 dark:text-gray-400">
-              <i class="pi pi-file-o text-4xl mb-2"></i>
-              <p>No documents uploaded.</p>
-            </div>
-          </ng-template>
         </div>
       </div>
     </div>

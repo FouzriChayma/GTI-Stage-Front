@@ -1,22 +1,20 @@
 import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import type { User } from '../../../models/User';
-import { lastValueFrom, Observable } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import type { Table } from 'primeng/table';
+import { Table } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TableModule } from 'primeng/table';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { FileUploadModule } from 'primeng/fileupload';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { environment } from '../../../environments/environment';
+import { AuthService } from '../../../services/auth.service';
+import { User } from '../../../models/User';
 
 interface Role {
   label: string;
@@ -36,7 +34,7 @@ interface ActiveStatus {
     FormsModule,
     ButtonModule,
     InputTextModule,
-    DropdownModule,
+    SelectModule,
     ToastModule,
     ConfirmDialogModule,
     TableModule,
@@ -49,7 +47,7 @@ interface ActiveStatus {
 })
 export class UserComponent implements OnInit {
   mode: 'list' | 'new' | 'edit' | 'details' = 'list';
-  users: User[] = []; // Initialized as empty array to avoid null
+  users: User[] = [];
   selectedUser: User | null = null;
   formUser: User = this.resetFormUser();
   isLoading = false;
@@ -59,11 +57,10 @@ export class UserComponent implements OnInit {
   selectedFile: File | null = null;
   profilePhotoUrl: SafeUrl | null = null;
   profilePhotoUrls: { [key: number]: SafeUrl | null } = {};
-  filtersExpanded = true; // Initially expanded
+  filtersExpanded = true;
   quickFilter: string | null = 'all';
   userId: number | null = null;
 
-  // Search form model
   searchCriteria = {
     email: '',
     firstName: '',
@@ -88,20 +85,21 @@ export class UserComponent implements OnInit {
 
   @ViewChild('dt') dt!: Table;
 
-  private apiUrl = environment.apiUrl;
-
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private http: HttpClient,
+    private authService: AuthService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
     private cdr: ChangeDetectorRef,
     private sanitizer: DomSanitizer
   ) {}
 
-  async ngOnInit(): Promise<void> {
-    this.route.paramMap.subscribe(params => {
+  ngOnInit(): void {
+    if (!this.authService.isAdmin()) {
+      this.router.navigate(['/not-found']);
+    }
+    this.route.paramMap.subscribe((params) => {
       this.userId = params.get('id') ? +params.get('id')! : null;
       this.mode = this.userId ? 'details' : 'list';
       if (this.userId) {
@@ -116,7 +114,6 @@ export class UserComponent implements OnInit {
     return {
       id: 0,
       email: '',
-      password: '',
       firstName: '',
       lastName: '',
       phoneNumber: '',
@@ -125,6 +122,7 @@ export class UserComponent implements OnInit {
       createdAt: '',
       updatedAt: '',
       profilePhotoPath: '',
+      password: '',
     };
   }
 
@@ -151,60 +149,57 @@ export class UserComponent implements OnInit {
     this.submitted = false;
     this.selectedFile = null;
     this.profilePhotoUrl = null;
-    console.log('Opening new user form, initial role:', this.formUser.role);
     this.cdr.detectChanges();
   }
 
-  async loadUsers(): Promise<void> {
+  loadUsers(): void {
     this.isLoading = true;
-    try {
-      const users = await lastValueFrom(this.http.get<User[]>(`${this.apiUrl}/users`));
-      this.users = Array.isArray(users) ? users : []; // Ensure users is always an array
-      for (const user of this.users) {
-        if (user.profilePhotoPath) {
-          await this.loadProfilePhotoForUser(user.id);
-        } else {
-          this.profilePhotoUrls[user.id] = null;
-        }
-      }
-      this.showSuccess('Users loaded successfully');
-    } catch (err) {
-      this.showError('Failed to load users', err);
-      this.users = []; // Reset to empty array on error
-    } finally {
-      this.isLoading = false;
-      this.cdr.detectChanges();
-    }
+    this.authService.getAllUsers().subscribe({
+      next: (users) => {
+        this.users = users;
+        this.users.forEach((user) => {
+          if (user.profilePhotoPath && user.profilePhotoPath.trim() !== '') {
+            this.loadProfilePhotoForUser(user.id);
+          } else {
+            this.profilePhotoUrls[user.id] = null;
+          }
+        });
+        this.showSuccess('Users loaded successfully');
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.showError('Failed to load users', err);
+        this.users = [];
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
-  async searchUsers(): Promise<void> {
+  searchUsers(): void {
     this.isSearching = true;
-    try {
-      let params = new HttpParams();
-      if (this.searchCriteria.email) params = params.set('email', this.searchCriteria.email.trim());
-      if (this.searchCriteria.firstName) params = params.set('firstName', this.searchCriteria.firstName.trim());
-      if (this.searchCriteria.lastName) params = params.set('lastName', this.searchCriteria.lastName.trim());
-      if (this.searchCriteria.phoneNumber) params = params.set('phoneNumber', this.searchCriteria.phoneNumber.trim());
-      if (this.searchCriteria.role) params = params.set('role', this.searchCriteria.role);
-      if (this.searchCriteria.isActive !== null) params = params.set('isActive', this.searchCriteria.isActive.toString());
-
-      const response = await lastValueFrom(this.http.get<any>(`${this.apiUrl}/users/search`, { params }));
-      this.users = Array.isArray(response) ? response : []; // Ensure users is always an array
-      for (const user of this.users) {
-        if (user.profilePhotoPath) {
-          await this.loadProfilePhotoForUser(user.id);
-        } else {
-          this.profilePhotoUrls[user.id] = null;
-        }
-      }
-      this.showSuccess(this.users.length ? 'Users found' : 'No users found');
-    } catch (err) {
-      this.showError('Search failed', err);
-      this.users = []; // Reset to empty array on error
-    } finally {
-      this.isSearching = false;
-      this.cdr.detectChanges();
-    }
+    this.authService.searchUsers(this.searchCriteria).subscribe({
+      next: (users) => {
+        this.users = users;
+        this.users.forEach((user) => {
+          if (user.profilePhotoPath && user.profilePhotoPath.trim() !== '') {
+            this.loadProfilePhotoForUser(user.id);
+          } else {
+            this.profilePhotoUrls[user.id] = null;
+          }
+        });
+        this.showSuccess(users.length ? 'Users found' : 'No users found');
+        this.isSearching = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.showError('Search failed', err);
+        this.users = [];
+        this.isSearching = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   resetSearch(): void {
@@ -220,22 +215,50 @@ export class UserComponent implements OnInit {
     this.loadUsers();
   }
 
-  private async loadProfilePhotoForUser(userId: number): Promise<void> {
-    try {
-      const response = await lastValueFrom(
-        this.http.get(`${this.apiUrl}/users/${userId}/profile-photo`, { responseType: 'blob' })
-      );
-      this.profilePhotoUrls[userId] = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(response));
-    } catch (err) {
+private loadProfilePhotoForUser(userId: number): void {
+  this.authService.getUserById(userId).subscribe({
+    next: (user) => {
+      if (user.profilePhotoPath && user.profilePhotoPath.trim() !== '') {
+        this.authService.getProfilePhoto(userId).subscribe({
+          next: (blob: Blob) => {
+            const safeUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(blob));
+            this.profilePhotoUrls[userId] = safeUrl;
+            if (this.selectedUser?.id === userId) {
+              this.profilePhotoUrl = safeUrl; // Set for details mode
+            }
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            this.profilePhotoUrls[userId] = null;
+            if (this.selectedUser?.id === userId) {
+              this.profilePhotoUrl = null; // Ensure consistency
+            }
+            this.showError(`Failed to load profile photo for user ${userId}`, err);
+            this.cdr.detectChanges();
+          },
+        });
+      } else {
+        this.profilePhotoUrls[userId] = null;
+        if (this.selectedUser?.id === userId) {
+          this.profilePhotoUrl = null; // Ensure consistency
+        }
+        this.cdr.detectChanges();
+      }
+    },
+    error: (err) => {
       this.profilePhotoUrls[userId] = null;
-      this.showError(`Failed to load profile photo for user ${userId}`, err);
-    }
-  }
+      if (this.selectedUser?.id === userId) {
+        this.profilePhotoUrl = null; // Ensure consistency
+      }
+      this.showError(`Failed to load user data for user ${userId}`, err);
+      this.cdr.detectChanges();
+    },
+  });
+}
 
   onRoleChange(event: any): void {
-    console.log('Role changed to:', event.value);
     this.formUser.role = event.value;
-    console.log('Form user role after change:', this.formUser.role);
+    this.cdr.detectChanges();
   }
 
   onFileSelect(event: any): void {
@@ -252,177 +275,157 @@ export class UserComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  async uploadProfilePhoto(userId: number): Promise<void> {
+  uploadProfilePhoto(userId: number): void {
     if (!this.selectedFile) {
       this.showError('No file selected for upload');
       return;
     }
-    const formData = new FormData();
-    formData.append('file', this.selectedFile);
-    try {
-      const response = await lastValueFrom(
-        this.http.post<User>(`${this.apiUrl}/users/${userId}/profile-photo`, formData)
-      );
-      const index = this.users.findIndex((u) => u.id === userId);
-      if (index !== -1) {
-        this.users[index] = response;
-      }
-      if (this.selectedUser?.id === userId) {
-        this.selectedUser = response;
-      }
-      this.showSuccess('Profile photo uploaded successfully');
-      this.selectedFile = null;
-      await this.loadProfilePhotoForUser(userId);
-    } catch (err) {
-      this.showError('Failed to upload profile photo', err);
-    }
-  }
-
-  async loadProfilePhoto(userId: number): Promise<void> {
-    try {
-      const response = await lastValueFrom(
-        this.http.get(`${this.apiUrl}/users/${userId}/profile-photo`, { responseType: 'blob' })
-      );
-      this.profilePhotoUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(response));
-      this.profilePhotoUrls[userId] = this.profilePhotoUrl;
-      this.cdr.detectChanges();
-    } catch (err) {
-      this.profilePhotoUrl = null;
-      this.profilePhotoUrls[userId] = null;
-      this.showError('Failed to load profile photo', err);
-    }
-  }
-
-  async deleteProfilePhoto(userId: number): Promise<void> {
-    this.confirmationService.confirm({
-      message: 'Are you sure you want to delete this profile photo?',
-      header: 'Confirm',
-      icon: 'pi pi-exclamation-triangle',
-      accept: async () => {
-        try {
-          await lastValueFrom(this.http.delete(`${this.apiUrl}/users/${userId}/profile-photo`));
-          const index = this.users.findIndex((u) => u.id === userId);
-          if (index !== -1) {
-            this.users[index].profilePhotoPath = '';
-          }
-          if (this.selectedUser?.id === userId) {
-            this.selectedUser!.profilePhotoPath = '';
-          }
-          this.profilePhotoUrl = null;
-          this.profilePhotoUrls[userId] = null;
-          this.showSuccess('Profile photo deleted successfully');
-          this.cdr.detectChanges();
-        } catch (err) {
-          this.showError('Failed to delete profile photo', err);
+    this.authService.uploadProfilePhoto(userId, this.selectedFile).subscribe({
+      next: (user) => {
+        const index = this.users.findIndex((u) => u.id === userId);
+        if (index !== -1) {
+          this.users[index] = user;
         }
+        if (this.selectedUser?.id === userId) {
+          this.selectedUser = user;
+        }
+        this.showSuccess('Profile photo uploaded successfully');
+        this.selectedFile = null;
+        this.loadProfilePhotoForUser(userId);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.showError('Failed to upload profile photo', err);
       },
     });
   }
 
-  async saveUser(): Promise<void> {
+  deleteProfilePhoto(userId: number): void {
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to delete this profile photo?',
+      header: 'Confirm',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.authService.deleteProfilePhoto(userId).subscribe({
+          next: () => {
+            const index = this.users.findIndex((u) => u.id === userId);
+            if (index !== -1) {
+              this.users[index].profilePhotoPath = '';
+            }
+            if (this.selectedUser?.id === userId) {
+              this.selectedUser!.profilePhotoPath = '';
+            }
+            this.profilePhotoUrl = null;
+            this.profilePhotoUrls[userId] = null;
+            this.showSuccess('Profile photo deleted successfully');
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            this.showError('Failed to delete profile photo', err);
+          },
+        });
+      },
+    });
+  }
+
+  saveUser(): void {
     this.submitted = true;
-    console.log('Saving user with role:', this.formUser.role);
-    console.log('Full form user object:', this.formUser);
     if (!this.validateForm()) return;
     this.isSaving = true;
     const payload = this.preparePayload();
-    try {
-      let user: User;
-      if (this.mode === 'new') {
-        user = await lastValueFrom(this.http.post<User>(`${this.apiUrl}/register`, payload));
-        this.users.push(user);
-        this.showSuccess('User registered successfully');
-        console.log('User created with role:', user.role);
-        if (this.selectedFile) {
-          await this.uploadProfilePhoto(user.id);
-        } else {
-          this.profilePhotoUrls[user.id] = null;
-        }
-      } else if (this.mode === 'edit' && this.selectedUser) {
-        user = await lastValueFrom(
-          this.http.put<User>(`${this.apiUrl}/users/${this.selectedUser.id}`, payload)
-        );
-        const index = this.users.findIndex((u) => u.id === user.id);
-        if (index !== -1) {
-          this.users[index] = user;
-        }
-        this.showSuccess('User updated successfully');
-        if (this.selectedFile) {
-          await this.uploadProfilePhoto(user.id);
-        } else if (user.profilePhotoPath) {
-          await this.loadProfilePhotoForUser(user.id);
-        } else {
-          this.profilePhotoUrls[user.id] = null;
-        }
-      }
-      this.mode = 'list';
-      this.selectedUser = null;
-      this.formUser = this.resetFormUser();
-      this.selectedFile = null;
-      this.profilePhotoUrl = null;
-      this.cdr.detectChanges();
-    } catch (err) {
-      this.showError(this.mode === 'new' ? 'Registration failed' : 'Update failed', err);
-      console.error('Error details:', err);
-    } finally {
-      this.isSaving = false;
-      this.cdr.detectChanges();
+    if (this.mode === 'new') {
+      this.authService.register(payload).subscribe({
+        next: (user) => {
+          this.users.push(user);
+          this.showSuccess('User registered successfully');
+          if (this.selectedFile) {
+            this.uploadProfilePhoto(user.id);
+          } else {
+            this.profilePhotoUrls[user.id] = null;
+          }
+          this.mode = 'list';
+          this.selectedUser = null;
+          this.formUser = this.resetFormUser();
+          this.selectedFile = null;
+          this.profilePhotoUrl = null;
+          this.isSaving = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.showError('Registration failed', err);
+          this.isSaving = false;
+          this.cdr.detectChanges();
+        },
+      });
+    } else if (this.mode === 'edit' && this.selectedUser) {
+      this.authService.updateUser(this.selectedUser.id, payload).subscribe({
+        next: (user) => {
+          const index = this.users.findIndex((u) => u.id === user.id);
+          if (index !== -1) {
+            this.users[index] = user;
+          }
+          this.showSuccess('User updated successfully');
+          if (this.selectedFile) {
+            this.uploadProfilePhoto(user.id);
+          } else if (user.profilePhotoPath && user.profilePhotoPath.trim() !== '') {
+            this.loadProfilePhotoForUser(user.id);
+          } else {
+            this.profilePhotoUrls[user.id] = null;
+          }
+          this.mode = 'list';
+          this.selectedUser = null;
+          this.formUser = this.resetFormUser();
+          this.selectedFile = null;
+          this.profilePhotoUrl = null;
+          this.isSaving = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.showError('Update failed', err);
+          this.isSaving = false;
+          this.cdr.detectChanges();
+        },
+      });
     }
   }
 
-  private preparePayload(): any {
-    const payload = {
+  private preparePayload(): Partial<User> {
+    const payload: Partial<User> = {
       email: this.formUser.email?.trim(),
-      password: this.mode === 'new' ? this.formUser.password?.trim() : undefined,
       firstName: this.formUser.firstName?.trim(),
       lastName: this.formUser.lastName?.trim(),
       phoneNumber: this.formUser.phoneNumber?.trim(),
       role: this.formUser.role,
     };
-    if (this.mode === 'edit') {
-      delete payload.password;
+    if (this.mode === 'new') {
+      payload.password = this.formUser.password?.trim();
+    } else if (this.formUser.password?.trim()) {
+      payload.password = this.formUser.password?.trim();
     }
-    console.log('Prepared payload:', payload);
     return payload;
   }
 
-  async loginUser(email: string, password: string): Promise<void> {
+  loadUserDetails(id: number): void {
     this.isLoading = true;
-    try {
-      const user = await lastValueFrom(this.http.post<User>(`${this.apiUrl}/login`, { email, password }));
-      this.selectedUser = user;
-      this.mode = 'details';
-      if (user.profilePhotoPath) {
-        await this.loadProfilePhoto(user.id);
-      }
-      this.showSuccess('Login successful');
-    } catch (err) {
-      this.showError('Login failed', err);
-    } finally {
-      this.isLoading = false;
-      this.cdr.detectChanges();
-    }
-  }
-
-  async loadUserDetails(id: number): Promise<void> {
-    this.isLoading = true;
-    try {
-      const user = await lastValueFrom(this.http.get<User>(`${this.apiUrl}/users/${id}`));
-      this.selectedUser = user;
-      this.mode = 'details';
-      if (user.profilePhotoPath) {
-        await this.loadProfilePhoto(user.id);
-      } else {
-        this.profilePhotoUrl = null;
-        this.profilePhotoUrls[id] = null;
-      }
-      this.isLoading = false;
-      this.cdr.detectChanges();
-    } catch (err) {
-      this.showError('Failed to load user details', err);
-      this.isLoading = false;
-      this.cdr.detectChanges();
-    }
+    this.authService.getUserById(id).subscribe({
+      next: (user) => {
+        this.selectedUser = user;
+        this.mode = 'details';
+        if (user.profilePhotoPath && user.profilePhotoPath.trim() !== '') {
+          this.loadProfilePhotoForUser(user.id);
+        } else {
+          this.profilePhotoUrl = null;
+          this.profilePhotoUrls[id] = null;
+        }
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.showError('Failed to load user details', err);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   editUser(user: User): void {
@@ -431,13 +434,12 @@ export class UserComponent implements OnInit {
     this.mode = 'edit';
     this.submitted = false;
     this.selectedFile = null;
-    if (user.profilePhotoPath) {
-      this.loadProfilePhoto(user.id);
+    if (user.profilePhotoPath && user.profilePhotoPath.trim() !== '') {
+      this.loadProfilePhotoForUser(user.id);
     } else {
       this.profilePhotoUrl = null;
       this.profilePhotoUrls[user.id] = null;
     }
-    console.log('Editing user with role:', this.formUser.role);
     this.cdr.detectChanges();
   }
 
@@ -446,21 +448,24 @@ export class UserComponent implements OnInit {
       message: 'Are you sure you want to delete this user?',
       header: 'Confirm',
       icon: 'pi pi-exclamation-triangle',
-      accept: async () => {
+      accept: () => {
         this.isLoading = true;
-        try {
-          await lastValueFrom(this.http.delete(`${this.apiUrl}/users/${id}`));
-          this.users = this.users.filter((user) => user.id !== id);
-          delete this.profilePhotoUrls[id];
-          this.selectedUser = null;
-          this.profilePhotoUrl = null;
-          this.showSuccess('User deleted successfully');
-        } catch (err) {
-          this.showError('Deletion failed', err);
-        } finally {
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        }
+        this.authService.deleteUser(id).subscribe({
+          next: () => {
+            this.users = this.users.filter((user) => user.id !== id);
+            delete this.profilePhotoUrls[id];
+            this.selectedUser = null;
+            this.profilePhotoUrl = null;
+            this.showSuccess('User deleted successfully');
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            this.showError('Deletion failed', err);
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          },
+        });
       },
     });
   }
@@ -476,9 +481,9 @@ export class UserComponent implements OnInit {
     this.loadUsers();
   }
 
-  async viewDetails(id: number): Promise<void> {
+  viewDetails(id: number): void {
     this.userId = id;
-    await this.loadUserDetails(id);
+    this.loadUserDetails(id);
     this.router.navigate([`/users/${id}`]);
   }
 
@@ -529,16 +534,17 @@ export class UserComponent implements OnInit {
 
   private showError(message: string, error?: any): void {
     const errorMessage = error?.error?.message || error?.message || 'Unknown error';
-    console.error(message, error);
+    console.error(`${message}:`, {
+      message,
+      errorDetails: error,
+      status: error?.status,
+      statusText: error?.statusText,
+    });
     this.messageService.add({
       severity: 'error',
       summary: 'Error',
       detail: `${message}: ${errorMessage}`,
       life: 3000,
     });
-  }
-
-  getUserById(id: number): Observable<{ firstName: string, lastName: string }> {
-    return this.http.get<{ firstName: string, lastName: string }>(`${this.apiUrl}/users/${id}`);
   }
 }
