@@ -151,7 +151,7 @@ export class AppointmentComponent implements OnInit {
     });
 
     return new Promise<void>((resolve) => {
-      this.http.get<User[]>('/api/auth/users', { headers, responseType: 'json' }).subscribe({
+      this.http.get<User[]>('http://localhost:8083/api/auth/users', { headers, responseType: 'json' }).subscribe({
         next: (users) => {
           console.log('Users loaded:', users);
           this.users = users?.map((user) => ({

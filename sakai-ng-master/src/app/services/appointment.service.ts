@@ -8,7 +8,7 @@ import { Appointment } from '../models/appointment';
   providedIn: 'root',
 })
 export class AppointmentService {
-  private apiUrl = '/api/appointments';
+  private apiUrl = 'http://localhost:8083/api/appointments';
 
   constructor(private http: HttpClient) {}
 

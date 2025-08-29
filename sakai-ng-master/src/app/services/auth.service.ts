@@ -95,7 +95,13 @@ export class AuthService {
       this.clearUserData();
       return of(undefined);
     }
-    return this.http.post<void>(`${this.apiUrl}/logout`, { refreshToken }).pipe(
+    const token = localStorage.getItem('token');
+        const headers = new HttpHeaders({
+          Authorization: token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        });
+    return this.http.post<void>(`${this.apiUrl}/logout`,{ headers, responseType: 'json' }).pipe(
       map(() => {
         this.clearUserData();
         return undefined;

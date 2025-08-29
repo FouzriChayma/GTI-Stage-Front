@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, ViewChild, signal } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { TransferRequestService } from "../../services/transfer-request.service";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { MessageService, ConfirmationService } from "primeng/api";
 import { Table } from "primeng/table";
 import { CommonModule } from "@angular/common";
@@ -156,7 +156,13 @@ export class TransferRequestComponent implements OnInit {
   }
 
   loadUsers() {
-    this.http.get<any[]>(`http://localhost:8083/api/auth/users`).subscribe(
+    const token = localStorage.getItem('token');
+        const headers = new HttpHeaders({
+          Authorization: token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        });
+    this.http.get<any[]>(`http://localhost:8083/api/auth/users`, { headers, responseType: 'json' }).subscribe(
       (users) => {
         this.users = users.map(user => ({
           label: `${user.firstName} ${user.lastName} (${user.email})`,
