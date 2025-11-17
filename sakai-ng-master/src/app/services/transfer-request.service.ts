@@ -66,7 +66,9 @@ export class TransferRequestService {
         bankAccount: transferRequest.beneficiary.bankAccount
       }
     };
-    return this.http.post<TransferRequest>(`${this.apiUrl}/json`, requestBody); // Changed to /json endpoint
+    return this.http.post<TransferRequest>(`${this.apiUrl}/json`, requestBody, {
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   createTransferRequestWithDocument(transferRequest: TransferRequest, file: File): Observable<TransferRequest> {

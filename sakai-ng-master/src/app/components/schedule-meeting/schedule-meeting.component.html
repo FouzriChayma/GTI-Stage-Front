@@ -1,91 +1,171 @@
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-  <div *ngIf="!isLoading; else loadingTemplate" class="space-y-6 fade-in smooth-transition">
-    <div class="enhanced-card hover-glow smooth-transition">
-      <div class="enhanced-toolbar">
-        <div class="toolbar-left">
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            Schedule New Meeting
-          </h3>
-        </div>
-        <div class="toolbar-right">
-          <button 
-            pButton 
-            pRipple 
-            label="Save" 
-            icon="pi pi-check" 
-            class="btn-success smooth-transition hover-lift"
-            [disabled]="isSaving" 
-            (click)="saveAppointment()">
-          </button>
-          <button 
-            pButton 
-            pRipple 
-            label="Cancel" 
-            icon="pi pi-times" 
-            class="btn-secondary smooth-transition hover-lift"
-            (click)="cancel()">
-          </button>
-        </div>
-      </div>
-    </div>
+<topbar-widget class="py-6 px-6 mx-0 md:mx-12 lg:mx-20 lg:px-20 flex items-center justify-between relative lg:static" />
 
-    <div class="grid grid-cols-1 gap-6">
-      <div class="form-section hover-glow smooth-transition">
-        <h5 class="form-section-title">Appointment Information</h5>
-        <div class="space-y-4">
-          <div class="form-field">
-            <label class="form-label">User</label>
-            <div *ngIf="currentUser" class="text-base text-gray-900 dark:text-gray-100">
-              {{ currentUser.firstName }} {{ currentUser.lastName }} ({{ currentUser.email }})
-            </div>
-            <div *ngIf="!currentUser && !isLoading" class="text-red-500">User data not loaded</div>
-          </div>
-          <div class="form-field">
-            <label for="appointmentDateTime" class="form-label form-required">Date & Time</label>
-            <p-calendar
-              id="appointmentDateTime"
-              [(ngModel)]="appointment.appointmentDateTime"
-              [showTime]="true"
-              hourFormat="24"
-              dateFormat="yy-mm-dd"
-              (onSelect)="loadAvailableSlots($event)"
-              required
-              styleClass="w-full"
-              [minDate]="minDate">
-            </p-calendar>
-          </div>
-          <div class="form-field">
-            <label for="duration" class="form-label form-required">Duration</label>
-            <p-dropdown
-              id="duration"
-              [options]="durationOptions"
-              [(ngModel)]="appointment.durationMinutes"
-              optionLabel="label"
-              optionValue="value"
-              required
-              styleClass="w-full">
-            </p-dropdown>
-          </div>
-          <div class="form-field">
-            <label for="notes" class="form-label">Notes</label>
-            <input
-              pInputText
-              id="notes"
-              [(ngModel)]="appointment.notes"
-              [maxlength]="255"
-              class="form-input"
-              placeholder="Enter notes (optional)"
-            />
-          </div>
+<div class="schedule-meeting-container">
+  <!-- Header with floating decorations -->
+  <div class="meeting-header">
+    <div class="floating-decoration decoration-1"></div>
+    <div class="floating-decoration decoration-2"></div>
+    <div class="floating-decoration decoration-3"></div>
+    
+    <div class="header-content">
+      <div>
+        <div class="header-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
         </div>
+        <h1 class="header-title">Schedule a Meeting</h1>
+        <p class="header-subtitle">Choose your preferred date and time</p>
       </div>
+      <button 
+        pButton 
+        pRipple 
+        class="slots-button"
+        [disabled]="true">
+        <i class="pi pi-calendar mr-2"></i>
+        {{ totalAvailableSlots }} Available Slots
+      </button>
     </div>
   </div>
 
+  <!-- Main Content -->
+  <div class="meeting-content" *ngIf="!isLoading; else loadingTemplate">
+    <!-- Calendar Section -->
+    <div class="calendar-section">
+      <!-- Month Navigation -->
+      <div class="month-navigation">
+        <button 
+          pButton 
+          pRipple 
+          icon="pi pi-chevron-left" 
+          [text]="true"
+          class="nav-button"
+          (click)="previousMonth()">
+        </button>
+        <h2 class="month-title">{{ getMonthYearString() }}</h2>
+        <button 
+          pButton 
+          pRipple 
+          icon="pi pi-chevron-right" 
+          [text]="true"
+          class="nav-button"
+          (click)="nextMonth()">
+        </button>
+      </div>
+
+      <!-- Week Days Header -->
+      <div class="week-days">
+        <div class="week-day" *ngFor="let day of ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']">
+          {{ day }}
+        </div>
+      </div>
+
+      <!-- Calendar Grid -->
+      <div class="calendar-grid">
+        <div 
+          *ngFor="let day of days; let i = index"
+          class="day-card"
+          [class.empty-day]="day.dayNumber === 0"
+          [class.past-day]="day.isPast && day.dayNumber > 0"
+          [class.selected-day]="day.isSelected"
+          [class.fully-booked]="day.isFullyBooked"
+          [class.has-slots]="day.slotsAvailable > 0 && !day.isFullyBooked"
+          (click)="selectDate(day)">
+          <div *ngIf="day.dayNumber > 0" class="day-content">
+            <div class="day-number">{{ day.dayNumber }}</div>
+            <div *ngIf="day.isFullyBooked" class="day-status full">Full</div>
+            <div *ngIf="!day.isFullyBooked && day.slotsAvailable > 0" class="day-status slots">
+              {{ day.slotsAvailable }} {{ day.slotsAvailable === 1 ? 'slot' : 'slots' }}
+            </div>
+            <div *ngIf="day.isSelected" class="selected-label">
+              {{ day.date | date:'MMMM d' }} - Selected
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Time Slots Sidebar -->
+    <div class="time-slots-sidebar" *ngIf="selectedDate">
+      <div class="sidebar-header">
+        <h3 class="sidebar-title">Available Time Slots</h3>
+        <p class="selected-date-text">{{ formatSelectedDate() }}</p>
+      </div>
+
+      <div class="time-slots-list">
+        <div 
+          *ngFor="let slot of timeSlots"
+          class="time-slot-item"
+          [class.available]="slot.isAvailable"
+          [class.unavailable]="!slot.isAvailable"
+          [class.selected]="slot.isSelected"
+          (click)="selectTimeSlot(slot)">
+          <i 
+            class="pi"
+            [class.pi-clock]="slot.isAvailable"
+            [class.pi-check-circle]="slot.isSelected"
+            [class.pi-times-circle]="!slot.isAvailable">
+          </i>
+          <span class="time-text">{{ slot.time }}</span>
+        </div>
+      </div>
+
+      <!-- Meeting Details Form -->
+      <div class="meeting-details-form" *ngIf="selectedTimeSlot">
+        <h4 class="form-title">Meeting Details</h4>
+        
+        <div class="form-field">
+          <label class="form-label">Duration</label>
+          <p-dropdown
+            [options]="durationOptions"
+            [(ngModel)]="appointment.durationMinutes"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full">
+          </p-dropdown>
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">Meeting Type</label>
+          <p-dropdown
+            [options]="meetingTypeOptions"
+            [(ngModel)]="appointment.notes"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Select meeting type"
+            styleClass="w-full">
+          </p-dropdown>
+        </div>
+
+        <button 
+          pButton 
+          pRipple 
+          label="Confirm Meeting" 
+          icon="pi pi-check"
+          class="confirm-button"
+          [disabled]="isSaving"
+          (click)="confirmMeeting()">
+        </button>
+      </div>
+    </div>
+
+    <!-- No Date Selected Message -->
+    <div class="no-selection-message" *ngIf="!selectedDate">
+      <i class="pi pi-calendar-plus"></i>
+      <p>Please select a date to view available time slots</p>
+    </div>
+  </div>
+
+  <!-- Loading Template -->
   <ng-template #loadingTemplate>
-    <div class="flex items-center justify-center h-64">
-      <p-progressSpinner [style]="{width: '50px', height: '50px'}" styleClass="text-blue-600 dark:text-blue-400"></p-progressSpinner>
-      <p class="ml-4 text-lg text-gray-600 dark:text-gray-300">Loading...</p>
+    <div class="loading-container">
+      <p-progressSpinner [style]="{width: '50px', height: '50px'}"></p-progressSpinner>
+      <p class="loading-text">Loading...</p>
     </div>
   </ng-template>
 </div>
+
+<p-toast></p-toast>

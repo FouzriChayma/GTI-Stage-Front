@@ -1,0 +1,74 @@
+// Enhanced card styles
+.enhanced-card {
+  @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700;
+}
+
+.enhanced-card-body {
+  @apply p-6;
+}
+
+// Toolbar styles
+.enhanced-toolbar {
+  @apply flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6;
+}
+
+.toolbar-left {
+  @apply flex items-center gap-3;
+}
+
+.toolbar-right {
+  @apply flex items-center gap-3;
+}
+
+// Button styles
+.btn-success {
+  @apply bg-green-600 hover:bg-green-700 text-white border-0;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 hover:bg-gray-300 text-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 border-0;
+}
+
+// Form styles
+.form-field {
+  @apply space-y-2;
+}
+
+.enhanced-form-label {
+  @apply flex items-center text-sm font-medium text-gray-700 dark:text-gray-300;
+}
+
+.enhanced-input-wrapper {
+  @apply w-full;
+}
+
+// Animations
+.hover-glow {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.smooth-transition {
+  transition: all 0.3s ease;
+}
+
+.hover-lift {
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+// PrimeNG overrides for dark mode
+:host ::ng-deep {
+  .p-dropdown,
+  .p-calendar {
+    @apply w-full;
+  }
+
+  .p-button-text {
+    @apply text-blue-600 dark:text-blue-400;
+  }
+}

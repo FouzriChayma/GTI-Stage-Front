@@ -1,0 +1,189 @@
+<topbar-widget class="py-6 px-6 mx-0 md:mx-12 lg:mx-20 lg:px-20 flex items-center justify-between relative lg:static" />
+
+<div class="discussion-container">
+  <div class="gradient-header">
+    <div class="floating-decoration decoration-1"></div>
+    <div class="floating-decoration decoration-2"></div>
+    <div class="floating-decoration decoration-3"></div>
+    
+    <div class="header-content">
+      <div class="header-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
+      <h1 class="header-title">{{ isChargeClientele ? 'Customer Support Dashboard' : 'Customer Support Chat' }}</h1>
+      <p class="header-subtitle">
+        <span *ngIf="isConnected" class="connection-status connected">
+          <i class="pi pi-circle-fill"></i> Connected
+        </span>
+        <span *ngIf="!isConnected" class="connection-status disconnected">
+          <i class="pi pi-circle-fill"></i> Connecting...
+        </span>
+      </p>
+    </div>
+  </div>
+
+  <div class="chat-wrapper">
+    <!-- Conversations List (for CHARGE_CLIENTELE) -->
+    <div class="conversations-sidebar" *ngIf="isChargeClientele">
+      <div class="sidebar-header">
+        <h3>Active Conversations</h3>
+        <p-badge [value]="conversations.length" severity="info"></p-badge>
+      </div>
+      <div class="conversations-list">
+        <div 
+          *ngFor="let conv of conversations" 
+          class="conversation-item"
+          [class.active]="selectedConversation?.id === conv.id"
+          (click)="selectConversation(conv)">
+          <div class="conversation-info">
+            <div class="conversation-name">{{ getConversationDisplayName(conv) }}</div>
+            <div class="conversation-preview" *ngIf="conv.lastMessage">
+              {{ conv.lastMessage.content }}
+            </div>
+            <div class="conversation-time" *ngIf="conv.lastMessage">
+              {{ formatTime(conv.lastMessage.sentAt) }}
+            </div>
+          </div>
+          <p-badge *ngIf="conv.unreadCount > 0" [value]="conv.unreadCount" severity="danger"></p-badge>
+        </div>
+        <div *ngIf="conversations.length === 0" class="no-conversations">
+          <p>No active conversations</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container" [class.full-width]="!isChargeClientele">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-state">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p>Loading...</p>
+      </div>
+
+      <!-- No Conversation Selected (for CHARGE_CLIENTELE) -->
+      <div *ngIf="!isLoading && isChargeClientele && !selectedConversation" class="no-conversation-selected">
+        <i class="pi pi-comments"></i>
+        <h3>Select a conversation to start chatting</h3>
+        <p>Choose a conversation from the sidebar to view and respond to messages</p>
+      </div>
+
+      <!-- No Conversation (for CLIENT) -->
+      <div *ngIf="!isLoading && isClient && conversations.length === 0" class="no-conversation">
+        <i class="pi pi-comments"></i>
+        <h3>Start a conversation</h3>
+        <p>Click the button below to start chatting with our support team</p>
+        <p-button 
+          label="Start Conversation" 
+          icon="pi pi-comment"
+          (onClick)="createConversation()"
+          [loading]="isLoading">
+        </p-button>
+      </div>
+
+      <!-- Chat Messages -->
+      <div *ngIf="!isLoading && selectedConversation" class="chat-messages-wrapper">
+        <div class="chat-header">
+          <div class="chat-header-info">
+            <h3>{{ getConversationDisplayName(selectedConversation) }}</h3>
+            <span class="chat-status" *ngIf="selectedConversation.agentId">
+              <i class="pi pi-circle-fill"></i> Agent Assigned
+            </span>
+            <span class="chat-status" *ngIf="!selectedConversation.agentId && isChargeClientele">
+              <i class="pi pi-circle-fill"></i> Unassigned
+            </span>
+          </div>
+        </div>
+
+        <div class="messages-list" #messagesContainer>
+          <div 
+            *ngFor="let message of messages; let i = index" 
+            class="message-wrapper"
+            [class.user-message]="message.sender === 'user'"
+            [class.support-message]="message.sender === 'support'">
+            
+            <div *ngIf="message.sender === 'support'" class="message support">
+              <div class="message-avatar">
+                <p-avatar 
+                  *ngIf="message.senderPhoto"
+                  [image]="getPhotoUrl(message.senderPhoto)" 
+                  shape="circle" 
+                  size="normal">
+                </p-avatar>
+                <p-avatar 
+                  *ngIf="!message.senderPhoto"
+                  [label]="message.senderName.charAt(0)" 
+                  shape="circle" 
+                  size="normal"
+                  styleClass="bg-purple-500">
+                </p-avatar>
+              </div>
+              <div class="message-content">
+                <div class="message-header">
+                  <span class="sender-name">{{ message.senderName }}</span>
+                  <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+                </div>
+                <div class="message-bubble support-bubble">
+                  <p>{{ message.text }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="message.sender === 'user'" class="message user">
+              <div class="message-content">
+                <div class="message-header">
+                  <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+                  <span class="sender-name">{{ message.senderName }}</span>
+                </div>
+                <div class="message-bubble user-bubble">
+                  <p>{{ message.text }}</p>
+                </div>
+              </div>
+              <div class="message-avatar">
+                <p-avatar 
+                  *ngIf="message.senderPhoto"
+                  [image]="getPhotoUrl(message.senderPhoto)" 
+                  shape="circle" 
+                  size="normal">
+                </p-avatar>
+                <p-avatar 
+                  *ngIf="!message.senderPhoto"
+                  [label]="message.senderName.charAt(0)" 
+                  shape="circle" 
+                  size="normal"
+                  styleClass="bg-blue-500">
+                </p-avatar>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="messages.length === 0" class="no-messages">
+            <p>No messages yet. Start the conversation!</p>
+          </div>
+        </div>
+
+        <div class="chat-input-container">
+          <div class="chat-input-wrapper">
+            <input 
+              type="text" 
+              [(ngModel)]="newMessage"
+              (keyup.enter)="sendMessage()"
+              placeholder="Write a message..." 
+              class="chat-input"
+              [disabled]="!selectedConversation || isLoading" />
+            <button 
+              class="send-button" 
+              (click)="sendMessage()"
+              [disabled]="!selectedConversation || !newMessage.trim() || isLoading">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

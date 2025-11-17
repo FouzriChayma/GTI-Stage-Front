@@ -21,6 +21,26 @@ export class AuthService {
     return this.isAuthenticated() && user?.role === 'ADMINISTRATOR';
   }
 
+  isClient(): boolean {
+    const user = this.getStoredUser();
+    return this.isAuthenticated() && user?.role === 'CLIENT';
+  }
+
+  isChargeClientele(): boolean {
+    const user = this.getStoredUser();
+    return this.isAuthenticated() && user?.role === 'CHARGE_CLIENTELE';
+  }
+
+  hasRole(role: string): boolean {
+    const user = this.getStoredUser();
+    return this.isAuthenticated() && user?.role === role;
+  }
+
+  hasAnyRole(...roles: string[]): boolean {
+    const user = this.getStoredUser();
+    return this.isAuthenticated() && !!user?.role && roles.includes(user.role);
+  }
+
   private apiUrl = `${environment.apiUrl}/api/auth`;
 
   constructor(private http: HttpClient) {}
@@ -69,6 +89,40 @@ export class AuthService {
     );
   }
 
+  registerWithPhoto(user: Partial<User>, file?: File): Observable<User> {
+    const formData = new FormData();
+    const userPayload = {
+      email: user.email?.trim(),
+      password: user.password?.trim(),
+      firstName: user.firstName?.trim(),
+      lastName: user.lastName?.trim(),
+      phoneNumber: user.phoneNumber?.trim(),
+      role: user.role,
+    };
+    
+    // Append user data as JSON
+    formData.append('user', new Blob([JSON.stringify(userPayload)], { type: 'application/json' }));
+    
+    // Append photo if provided
+    if (file) {
+      formData.append('file', file);
+    }
+    
+    return this.http.post<User>(`${this.apiUrl}/register-with-photo`, formData).pipe(
+      map((response: User) => {
+        if (!response || !response.token || !response.refreshToken) {
+          throw new Error('Invalid register response: Missing user data or tokens');
+        }
+        this.storeUserData(response);
+        return response;
+      }),
+      catchError((error) => {
+        console.error('Register with photo error:', error);
+        return throwError(() => new Error(error.error?.message || 'Registration failed'));
+      })
+    );
+  }
+
   refreshToken(): Observable<User> {
     const refreshToken = this.getRefreshToken();
     if (!refreshToken) {
@@ -91,24 +145,31 @@ export class AuthService {
 
   logout(): Observable<void> {
     const refreshToken = this.getRefreshToken();
+    const token = localStorage.getItem('token');
+    
+    // Clear user data immediately
+    this.clearUserData();
+    
+    // If no refresh token, just return
     if (!refreshToken) {
-      this.clearUserData();
       return of(undefined);
     }
-    const token = localStorage.getItem('token');
-        const headers = new HttpHeaders({
-          Authorization: token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        });
-    return this.http.post<void>(`${this.apiUrl}/logout`,{ headers, responseType: 'json' }).pipe(
+    
+    const headers = new HttpHeaders({
+      Authorization: token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+    
+    const body = { refreshToken: refreshToken };
+    
+    return this.http.post<void>(`${this.apiUrl}/logout`, body, { headers }).pipe(
       map(() => {
-        this.clearUserData();
         return undefined;
       }),
       catchError((error) => {
         console.error('Logout error:', error);
-        this.clearUserData();
+        // Even if logout fails, we've already cleared local data
         return of(undefined);
       })
     );
@@ -191,6 +252,20 @@ export class AuthService {
     );
   }
 
+  changePassword(id: number, currentPassword: string, newPassword: string): Observable<User> {
+    const headers = this.getAuthHeaders();
+    const payload = {
+      currentPassword: currentPassword,
+      newPassword: newPassword
+    };
+    return this.http.post<User>(`${this.apiUrl}/users/${id}/change-password`, payload, { headers }).pipe(
+      catchError((error) => {
+        console.error('Change password error:', error);
+        return throwError(() => new Error(error.error?.message || 'Failed to change password'));
+      })
+    );
+  }
+
   deleteUser(id: number): Observable<void> {
     const headers = this.getAuthHeaders();
     return this.http.delete<void>(`${this.apiUrl}/users/${id}`, { headers }).pipe(
@@ -243,6 +318,28 @@ export class AuthService {
         profilePhotoPath: user.profilePhotoPath,
       })
     );
+  }
+
+  // Update stored user data without tokens (for profile updates)
+  updateStoredUser(user: User): void {
+    const storedUser = this.getStoredUser();
+    if (storedUser) {
+      localStorage.setItem(
+        'user',
+        JSON.stringify({
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          profilePhotoPath: user.profilePhotoPath,
+        })
+      );
+    }
   }
 
   getToken(): string | null {

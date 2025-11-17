@@ -11,6 +11,8 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/User';
 import { DropdownModule } from 'primeng/dropdown';
+import { FileUploadModule } from 'primeng/fileupload';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-login',
@@ -25,6 +27,7 @@ import { DropdownModule } from 'primeng/dropdown';
     ToastModule,
     CommonModule,
     DropdownModule,
+    FileUploadModule,
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
@@ -41,6 +44,8 @@ export class LoginComponent implements OnInit {
   checked: boolean = false;
   isLoading: boolean = false;
   submitted: boolean = false;
+  selectedFile: File | null = null;
+  profilePhotoPreview: SafeUrl | null = null;
 
   roleOptions = [
     { label: 'Client', value: 'CLIENT' },
@@ -52,7 +57,8 @@ export class LoginComponent implements OnInit {
     private authService: AuthService,
     private messageService: MessageService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -152,19 +158,35 @@ export class LoginComponent implements OnInit {
     }
 
     this.isLoading = true;
-    this.authService.register({
-      email: this.email.trim(),
-      password: this.password.trim(),
-      firstName: this.firstName.trim(),
-      lastName: this.lastName.trim(),
-      phoneNumber: this.phoneNumber.trim(),
-      role: this.role,
-    }).subscribe({
+    
+    // Use registerWithPhoto if a file is selected, otherwise use regular register
+    const registerObservable = this.selectedFile
+      ? this.authService.registerWithPhoto({
+          email: this.email.trim(),
+          password: this.password.trim(),
+          firstName: this.firstName.trim(),
+          lastName: this.lastName.trim(),
+          phoneNumber: this.phoneNumber.trim(),
+          role: this.role,
+        }, this.selectedFile)
+      : this.authService.register({
+          email: this.email.trim(),
+          password: this.password.trim(),
+          firstName: this.firstName.trim(),
+          lastName: this.lastName.trim(),
+          phoneNumber: this.phoneNumber.trim(),
+          role: this.role,
+        });
+    
+    registerObservable.subscribe({
       next: (user: User) => {
         console.log('Register response:', user);
         this.showSuccess('Registration successful');
         this.redirectUser(user);
         this.isLoading = false;
+        // Reset form
+        this.selectedFile = null;
+        this.profilePhotoPreview = null;
       },
       error: (err) => {
         this.showError('Registration failed', err);
@@ -176,14 +198,14 @@ export class LoginComponent implements OnInit {
   private redirectUser(user: User): void {
     switch (user.role) {
       case 'ADMINISTRATOR':
-        this.router.navigate(['/users']);
+        this.router.navigate(['/stats']); // ADMINISTRATOR goes to stats page
         break;
       case 'CLIENT':
       case 'CHARGE_CLIENTELE':
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/home']); // CLIENT and CHARGE_CLIENTELE go to home page
         break;
       default:
-        this.router.navigate(['/']);
+        this.router.navigate(['/home']);
     }
   }
 
@@ -217,6 +239,36 @@ export class LoginComponent implements OnInit {
     this.phoneNumber = '';
     this.role = 'CLIENT';
     this.checked = false;
+    this.selectedFile = null;
+    this.profilePhotoPreview = null;
     this.router.navigate(['/auth'], { queryParams: { mode } });
+  }
+
+  onFileSelect(event: any): void {
+    const file = event.files && event.files.length > 0 ? event.files[0] : null;
+    if (file) {
+      // Validate file type
+      if (!file.type.match(/image\/(png|jpeg|jpg)/)) {
+        this.showError('Invalid file type. Only PNG and JPEG images are allowed.');
+        return;
+      }
+      // Validate file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        this.showError('File size exceeds 5MB. Please choose a smaller image.');
+        return;
+      }
+      this.selectedFile = file;
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.profilePhotoPreview = this.sanitizer.bypassSecurityTrustUrl(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removePhoto(): void {
+    this.selectedFile = null;
+    this.profilePhotoPreview = null;
   }
 }

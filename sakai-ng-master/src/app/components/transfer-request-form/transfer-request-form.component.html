@@ -1,16 +1,25 @@
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-  <div class="enhanced-card hover-glow smooth-transition">
-    <div class="enhanced-toolbar">
-      <div class="toolbar-left">
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Initiate Transfer Request</h3>
+<topbar-widget class="py-6 px-6 mx-0 md:mx-12 lg:mx-20 lg:px-20 flex items-center justify-between relative lg:static" />
+
+<div class="transfer-form-container">
+  <!-- Hero Header Section -->
+  <div class="hero-header-card">
+    <div class="hero-content">
+      <div class="hero-left">
+        <div class="icon-badge">
+          <i class="pi pi-send"></i>
+        </div>
+        <div>
+          <h1 class="hero-title">Transfer Request</h1>
+          <p class="hero-subtitle">Complete the form below to initiate your transfer</p>
+        </div>
       </div>
-      <div class="toolbar-right">
+      <div class="hero-actions">
         <button
           pButton
           pRipple
-          label="Save"
+          label="Save Request"
           icon="pi pi-check"
-          class="btn-success smooth-transition hover-lift"
+          class="btn-primary"
           [disabled]="transferForm.invalid || isSaving"
           (click)="saveTransferRequest()"
         ></button>
@@ -19,284 +28,484 @@
           pRipple
           label="Cancel"
           icon="pi pi-times"
-          class="btn-secondary smooth-transition hover-lift"
+          class="btn-outline"
           (click)="cancel()"
         ></button>
       </div>
     </div>
+    <div class="hero-decoration"></div>
+    <div class="hero-decoration-2"></div>
   </div>
 
-  <form [formGroup]="transferForm" class="space-y-6 fade-in smooth-transition">
-    <!-- Basic Information -->
-    <div class="form-section hover-glow smooth-transition">
-      <h5 class="form-section-title">Basic Information</h5>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="form-field">
-          <label for="commissionAccountNumber" class="form-label form-required">Commission Account Number</label>
-          <input
-            pInputText
-            id="commissionAccountNumber"
-            formControlName="commissionAccountNumber"
-            placeholder="Enter commission account number"
-            class="form-input"
-          />
-          <small class="p-error" *ngIf="transferForm.get('commissionAccountNumber')?.touched && transferForm.get('commissionAccountNumber')?.invalid">
-            Commission Account is required (10-34 characters)
-          </small>
+  <form [formGroup]="transferForm" class="transfer-form">
+    <!-- Progress Indicator -->
+    <div class="progress-steps">
+      <div class="step active">
+        <div class="step-circle">1</div>
+        <span class="step-label">Basic Info</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" [class.active]="transferForm.get('commissionAccountNumber')?.valid">
+        <div class="step-circle">2</div>
+        <span class="step-label">Transfer Details</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" [class.active]="transferForm.get('transferType')?.value === 'COMMERCIAL' && transferForm.get('invoiceNumber')?.valid">
+        <div class="step-circle">3</div>
+        <span class="step-label">Beneficiary</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" [class.active]="transferForm.get('beneficiaryName')?.valid">
+        <div class="step-circle">4</div>
+        <span class="step-label">Documents</span>
+      </div>
+    </div>
+
+    <!-- Basic Information Section -->
+    <div class="form-card slide-in">
+      <div class="card-header">
+        <div class="card-icon">
+          <i class="pi pi-info-circle"></i>
         </div>
-        <div class="form-field">
-          <label for="commissionAccountType" class="form-label form-required">Commission Account Type</label>
-          <p-dropdown
-            id="commissionAccountType"
-            [options]="accountTypes"
-            formControlName="commissionAccountType"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Select account type"
-            styleClass="w-full"
-          ></p-dropdown>
-          <small class="p-error" *ngIf="transferForm.get('commissionAccountType')?.touched && transferForm.get('commissionAccountType')?.invalid">
-            Commission Account Type is required
-          </small>
+        <div>
+          <h3 class="card-title">Basic Information</h3>
+          <p class="card-subtitle">Enter your account details</p>
         </div>
-        <div class="form-field">
-          <label for="settlementAccountNumber" class="form-label form-required">Settlement Account Number</label>
-          <input
-            pInputText
-            id="settlementAccountNumber"
-            formControlName="settlementAccountNumber"
-            placeholder="Enter settlement account number"
-            class="form-input"
-          />
-          <small class="p-error" *ngIf="transferForm.get('settlementAccountNumber')?.touched && transferForm.get('settlementAccountNumber')?.invalid">
-            Settlement Account is required (10-34 characters)
-          </small>
-        </div>
-        <div class="form-field">
-          <label for="settlementAccountType" class="form-label form-required">Settlement Account Type</label>
-          <p-dropdown
-            id="settlementAccountType"
-            [options]="accountTypes"
-            formControlName="settlementAccountType"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Select account type"
-            styleClass="w-full"
-          ></p-dropdown>
-          <small class="p-error" *ngIf="transferForm.get('settlementAccountType')?.touched && transferForm.get('settlementAccountType')?.invalid">
-            Settlement Account Type is required
-          </small>
+      </div>
+      
+      <div class="card-content">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="commissionAccountNumber" class="form-label required">
+              <i class="pi pi-wallet"></i>
+              Commission Account Number
+            </label>
+            <input
+              pInputText
+              id="commissionAccountNumber"
+              formControlName="commissionAccountNumber"
+              placeholder="Enter commission account number"
+              class="form-input"
+            />
+            <small class="error-message" *ngIf="transferForm.get('commissionAccountNumber')?.touched && transferForm.get('commissionAccountNumber')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Commission Account is required (10-34 characters)
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="commissionAccountType" class="form-label required">
+              <i class="pi pi-tag"></i>
+              Commission Account Type
+            </label>
+            <p-dropdown
+              id="commissionAccountType"
+              [options]="accountTypes"
+              formControlName="commissionAccountType"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select account type"
+              styleClass="w-full custom-dropdown"
+            ></p-dropdown>
+            <small class="error-message" *ngIf="transferForm.get('commissionAccountType')?.touched && transferForm.get('commissionAccountType')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Commission Account Type is required
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="settlementAccountNumber" class="form-label required">
+              <i class="pi pi-wallet"></i>
+              Settlement Account Number
+            </label>
+            <input
+              pInputText
+              id="settlementAccountNumber"
+              formControlName="settlementAccountNumber"
+              placeholder="Enter settlement account number"
+              class="form-input"
+            />
+            <small class="error-message" *ngIf="transferForm.get('settlementAccountNumber')?.touched && transferForm.get('settlementAccountNumber')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Settlement Account is required (10-34 characters)
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="settlementAccountType" class="form-label required">
+              <i class="pi pi-tag"></i>
+              Settlement Account Type
+            </label>
+            <p-dropdown
+              id="settlementAccountType"
+              [options]="accountTypes"
+              formControlName="settlementAccountType"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select account type"
+              styleClass="w-full custom-dropdown"
+            ></p-dropdown>
+            <small class="error-message" *ngIf="transferForm.get('settlementAccountType')?.touched && transferForm.get('settlementAccountType')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Settlement Account Type is required
+            </small>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Transfer Details -->
-    <div class="form-section hover-glow smooth-transition">
-      <h5 class="form-section-title">Transfer Details</h5>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="form-field">
-          <label for="transferType" class="form-label form-required">Transfer Type</label>
-          <p-dropdown
-            id="transferType"
-            [options]="transferTypes"
-            formControlName="transferType"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Select transfer type"
-            styleClass="w-full"
-            (onChange)="onTransferTypeChange()"
-          ></p-dropdown>
-          <small class="p-error" *ngIf="transferForm.get('transferType')?.touched && transferForm.get('transferType')?.invalid">
-            Transfer Type is required
-          </small>
+    <!-- Transfer Details Section -->
+    <div class="form-card slide-in" style="animation-delay: 0.1s">
+      <div class="card-header">
+        <div class="card-icon">
+          <i class="pi pi-arrow-right-arrow-left"></i>
         </div>
-        <div class="form-field">
-          <label for="issueDate" class="form-label form-required">Issue Date</label>
-          <input
-            pInputText
-            id="issueDate"
-            formControlName="issueDate"
-            type="date"
-            class="form-input"
-          />
-          <small class="p-error" *ngIf="transferForm.get('issueDate')?.touched && transferForm.get('issueDate')?.invalid">
-            Issue Date is required and cannot be in the future
-          </small>
+        <div>
+          <h3 class="card-title">Transfer Details</h3>
+          <p class="card-subtitle">Specify transfer information</p>
         </div>
-        <div class="form-field">
-          <label for="feeType" class="form-label form-required">Fee Type</label>
-          <p-dropdown
-            id="feeType"
-            [options]="feeTypes"
-            formControlName="feeType"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Select fee type"
-            styleClass="w-full"
-          ></p-dropdown>
-          <small class="p-error" *ngIf="transferForm.get('feeType')?.touched && transferForm.get('feeType')?.invalid">
-            Fee Type is required
-          </small>
-        </div>
-        <div class="form-field">
-          <label for="currency" class="form-label form-required">Currency</label>
-          <input
-            pInputText
-            id="currency"
-            formControlName="currency"
-            placeholder="e.g., TND"
-            class="form-input"
-          />
-          <small class="p-error" *ngIf="transferForm.get('currency')?.touched && transferForm.get('currency')?.invalid">
-            Currency must be a 3-letter ISO 4217 code
-          </small>
-        </div>
-        <div class="form-field">
-          <label for="amount" class="form-label form-required">Amount</label>
-          <p-inputNumber
-            id="amount"
-            formControlName="amount"
-            [min]="0.001"
-            mode="currency"
-            currency="TND"
-            placeholder="Enter amount"
-            styleClass="w-full"
-          ></p-inputNumber>
-          <small class="p-error" *ngIf="transferForm.get('amount')?.touched && transferForm.get('amount')?.invalid">
-            Amount must be greater than 0.001
-          </small>
+      </div>
+      
+      <div class="card-content">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="transferType" class="form-label required">
+              <i class="pi pi-list"></i>
+              Transfer Type
+            </label>
+            <p-dropdown
+              id="transferType"
+              [options]="transferTypes"
+              formControlName="transferType"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select transfer type"
+              styleClass="w-full custom-dropdown"
+              (onChange)="onTransferTypeChange()"
+            ></p-dropdown>
+            <small class="error-message" *ngIf="transferForm.get('transferType')?.touched && transferForm.get('transferType')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Transfer Type is required
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="issueDate" class="form-label required">
+              <i class="pi pi-calendar"></i>
+              Issue Date
+            </label>
+            <input
+              pInputText
+              id="issueDate"
+              formControlName="issueDate"
+              type="date"
+              class="form-input"
+            />
+            <small class="error-message" *ngIf="transferForm.get('issueDate')?.touched && transferForm.get('issueDate')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Issue Date is required and cannot be in the future
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="feeType" class="form-label required">
+              <i class="pi pi-dollar"></i>
+              Fee Type
+            </label>
+            <p-dropdown
+              id="feeType"
+              [options]="feeTypes"
+              formControlName="feeType"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select fee type"
+              styleClass="w-full custom-dropdown"
+            ></p-dropdown>
+            <small class="error-message" *ngIf="transferForm.get('feeType')?.touched && transferForm.get('feeType')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Fee Type is required
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="currency" class="form-label required">
+              <i class="pi pi-money-bill"></i>
+              Currency
+            </label>
+            <input
+              pInputText
+              id="currency"
+              formControlName="currency"
+              placeholder="e.g., TND"
+              class="form-input"
+            />
+            <small class="error-message" *ngIf="transferForm.get('currency')?.touched && transferForm.get('currency')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Currency must be a 3-letter ISO 4217 code
+            </small>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="amount" class="form-label required">
+              <i class="pi pi-money-bill"></i>
+              Amount
+            </label>
+            <p-inputNumber
+              id="amount"
+              formControlName="amount"
+              [min]="0.001"
+              mode="currency"
+              currency="TND"
+              placeholder="Enter amount"
+              styleClass="w-full custom-input-number"
+            ></p-inputNumber>
+            <small class="error-message" *ngIf="transferForm.get('amount')?.touched && transferForm.get('amount')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Amount must be greater than 0.001
+            </small>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Commercial Transfer Information -->
-    <div *ngIf="transferForm.get('transferType')?.value === 'COMMERCIAL'" class="form-section fade-in smooth-transition">
-      <h5 class="form-section-title">Commercial Transfer Information</h5>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="form-field">
-          <label for="invoiceNumber" class="form-label form-required">Invoice Number</label>
-          <input
-            pInputText
-            id="invoiceNumber"
-            formControlName="invoiceNumber"
-            placeholder="Enter invoice number"
-            class="form-input"
-          />
-          <small class="p-error" *ngIf="transferForm.get('invoiceNumber')?.touched && transferForm.get('invoiceNumber')?.invalid">
-            Invoice Number is required (max 50 characters)
-          </small>
+    <!-- Commercial Transfer Information (Conditional) -->
+    <div *ngIf="transferForm.get('transferType')?.value === 'COMMERCIAL'" class="form-card slide-in commercial-section" style="animation-delay: 0.2s">
+      <div class="card-header">
+        <div class="card-icon">
+          <i class="pi pi-file-edit"></i>
         </div>
-        <div class="form-field">
-          <label for="invoiceDate" class="form-label form-required">Invoice Date</label>
-          <input
-            pInputText
-            id="invoiceDate"
-            formControlName="invoiceDate"
-            type="date"
-            class="form-input"
-          />
-          <small class="p-error" *ngIf="transferForm.get('invoiceDate')?.touched && transferForm.get('invoiceDate')?.invalid">
-            Invoice Date is required and cannot be in the future
-          </small>
+        <div>
+          <h3 class="card-title">Commercial Transfer Information</h3>
+          <p class="card-subtitle">Invoice and transfer details</p>
         </div>
-        <div class="form-field md:col-span-2">
-          <label for="transferReason" class="form-label form-required">Transfer Reason</label>
-          <input
-            pInputText
-            id="transferReason"
-            formControlName="transferReason"
-            placeholder="Enter transfer reason"
-            class="form-input"
-          />
-          <small class="p-error" *ngIf="transferForm.get('transferReason')?.touched && transferForm.get('transferReason')?.invalid">
-            Transfer Reason is required (max 255 characters)
-          </small>
+      </div>
+      
+      <div class="card-content">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="invoiceNumber" class="form-label required">
+              <i class="pi pi-hashtag"></i>
+              Invoice Number
+            </label>
+            <input
+              pInputText
+              id="invoiceNumber"
+              formControlName="invoiceNumber"
+              placeholder="Enter invoice number"
+              class="form-input"
+            />
+            <small class="error-message" *ngIf="transferForm.get('invoiceNumber')?.touched && transferForm.get('invoiceNumber')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Invoice Number is required (max 50 characters)
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="invoiceDate" class="form-label required">
+              <i class="pi pi-calendar"></i>
+              Invoice Date
+            </label>
+            <input
+              pInputText
+              id="invoiceDate"
+              formControlName="invoiceDate"
+              type="date"
+              class="form-input"
+            />
+            <small class="error-message" *ngIf="transferForm.get('invoiceDate')?.touched && transferForm.get('invoiceDate')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Invoice Date is required and cannot be in the future
+            </small>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="transferReason" class="form-label required">
+              <i class="pi pi-comment"></i>
+              Transfer Reason
+            </label>
+            <input
+              pInputText
+              id="transferReason"
+              formControlName="transferReason"
+              placeholder="Enter transfer reason"
+              class="form-input"
+            />
+            <small class="error-message" *ngIf="transferForm.get('transferReason')?.touched && transferForm.get('transferReason')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Transfer Reason is required (max 255 characters)
+            </small>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Beneficiary Information -->
-    <div class="form-section hover-glow smooth-transition">
-      <h5 class="form-section-title">Beneficiary Information</h5>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="form-field">
-          <label for="beneficiaryName" class="form-label form-required">Beneficiary Name</label>
-          <input
-            pInputText
-            id="beneficiaryName"
-            formControlName="beneficiaryName"
-            placeholder="Enter beneficiary name"
-            class="form-input"
-          />
-          <small class="p-error" *ngIf="transferForm.get('beneficiaryName')?.touched && transferForm.get('beneficiaryName')?.invalid">
-            Beneficiary Name is required (max 100 characters)
-          </small>
+    <!-- Beneficiary Information Section -->
+    <div class="form-card slide-in" style="animation-delay: 0.3s">
+      <div class="card-header">
+        <div class="card-icon">
+          <i class="pi pi-user"></i>
         </div>
-        <div class="form-field">
-          <label for="beneficiaryCountry" class="form-label form-required">Country</label>
-          <input
-            pInputText
-            id="beneficiaryCountry"
-            formControlName="beneficiaryCountry"
-            placeholder="Enter country"
-            class="form-input"
-          />
-          <small class="p-error" *ngIf="transferForm.get('beneficiaryCountry')?.touched && transferForm.get('beneficiaryCountry')?.invalid">
-            Country is required (max 100 characters)
-          </small>
+        <div>
+          <h3 class="card-title">Beneficiary Information</h3>
+          <p class="card-subtitle">Details of the transfer recipient</p>
         </div>
-        <div class="form-field">
-          <label for="beneficiaryDestinationBank" class="form-label form-required">Destination Bank</label>
-          <input
-            pInputText
-            id="beneficiaryDestinationBank"
-            formControlName="beneficiaryDestinationBank"
-            placeholder="Enter destination bank"
-            class="form-input"
-          />
-          <small class="p-error" *ngIf="transferForm.get('beneficiaryDestinationBank')?.touched && transferForm.get('beneficiaryDestinationBank')?.invalid">
-            Destination Bank is required (max 100 characters)
-          </small>
-        </div>
-        <div class="form-field">
-          <label for="beneficiaryBankAccount" class="form-label">Bank Account</label>
-          <input
-            pInputText
-            id="beneficiaryBankAccount"
-            formControlName="beneficiaryBankAccount"
-            placeholder="Enter bank account (optional)"
-            class="form-input"
-          />
-          <small class="p-error" *ngIf="transferForm.get('beneficiaryBankAccount')?.touched && transferForm.get('beneficiaryBankAccount')?.invalid">
-            Bank Account must not exceed 34 characters
-          </small>
+      </div>
+      
+      <div class="card-content">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="beneficiaryName" class="form-label required">
+              <i class="pi pi-user"></i>
+              Beneficiary Name
+            </label>
+            <input
+              pInputText
+              id="beneficiaryName"
+              formControlName="beneficiaryName"
+              placeholder="Enter beneficiary name"
+              class="form-input"
+            />
+            <small class="error-message" *ngIf="transferForm.get('beneficiaryName')?.touched && transferForm.get('beneficiaryName')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Beneficiary Name is required (max 100 characters)
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="beneficiaryCountry" class="form-label required">
+              <i class="pi pi-globe"></i>
+              Country
+            </label>
+            <input
+              pInputText
+              id="beneficiaryCountry"
+              formControlName="beneficiaryCountry"
+              placeholder="Enter country"
+              class="form-input"
+            />
+            <small class="error-message" *ngIf="transferForm.get('beneficiaryCountry')?.touched && transferForm.get('beneficiaryCountry')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Country is required (max 100 characters)
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="beneficiaryDestinationBank" class="form-label required">
+              <i class="pi pi-building"></i>
+              Destination Bank
+            </label>
+            <input
+              pInputText
+              id="beneficiaryDestinationBank"
+              formControlName="beneficiaryDestinationBank"
+              placeholder="Enter destination bank"
+              class="form-input"
+            />
+            <small class="error-message" *ngIf="transferForm.get('beneficiaryDestinationBank')?.touched && transferForm.get('beneficiaryDestinationBank')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Destination Bank is required (max 100 characters)
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="beneficiaryBankAccount" class="form-label">
+              <i class="pi pi-credit-card"></i>
+              Bank Account
+            </label>
+            <input
+              pInputText
+              id="beneficiaryBankAccount"
+              formControlName="beneficiaryBankAccount"
+              placeholder="Enter bank account (optional)"
+              class="form-input"
+            />
+            <small class="error-message" *ngIf="transferForm.get('beneficiaryBankAccount')?.touched && transferForm.get('beneficiaryBankAccount')?.invalid">
+              <i class="pi pi-exclamation-circle"></i>
+              Bank Account must not exceed 34 characters
+            </small>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Documents -->
-    <div class="form-section hover-glow smooth-transition">
-      <h5 class="form-section-title">Documents</h5>
-      <div class="file-upload-area">
-        <p-fileUpload
-          [multiple]="true"
-          [maxFileSize]="1000000"
-          accept="application/pdf,image/*"
-          (onSelect)="onFileSelected($event)"
-          [customUpload]="true"
-          [files]="selectedFiles"
-        ></p-fileUpload>
+    <!-- Documents Section -->
+    <div class="form-card slide-in" style="animation-delay: 0.4s">
+      <div class="card-header">
+        <div class="card-icon">
+          <i class="pi pi-file"></i>
+        </div>
+        <div>
+          <h3 class="card-title">Supporting Documents</h3>
+          <p class="card-subtitle">Upload required documents (PDF, PNG, JPEG)</p>
+        </div>
       </div>
-      <div *ngIf="selectedFiles.length" class="mt-4 space-y-2">
-        <h6 class="text-sm font-medium text-gray-700 dark:text-gray-300">Selected Documents</h6>
-        <div *ngFor="let file of selectedFiles" class="file-item">
-          <span class="file-name">{{ file.name }}</span>
+      
+      <div class="card-content">
+        <div class="upload-area">
+          <p-fileUpload
+            [multiple]="true"
+            [maxFileSize]="1000000"
+            accept="application/pdf,image/*"
+            (onSelect)="onFileSelected($event)"
+            [customUpload]="true"
+            [files]="selectedFiles"
+            chooseLabel="Choose Files"
+            uploadLabel="Upload"
+            cancelLabel="Clear"
+          ></p-fileUpload>
+        </div>
+        
+        <div *ngIf="selectedFiles.length" class="files-list">
+          <h4 class="files-title">
+            <i class="pi pi-paperclip"></i>
+            Selected Documents ({{ selectedFiles.length }})
+          </h4>
+          <div class="file-items">
+            <div *ngFor="let file of selectedFiles" class="file-item">
+              <div class="file-info">
+                <i class="pi pi-file file-icon"></i>
+                <div class="file-details">
+                  <span class="file-name">{{ file.name }}</span>
+                  <span class="file-size">{{ (file.size / 1024).toFixed(2) }} KB</span>
+                </div>
+              </div>
+              <button
+                pButton
+                pRipple
+                icon="pi pi-trash"
+                class="btn-delete"
+                (click)="removeFile(file)"
+              ></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Section -->
+    <div class="submit-section">
+      <div class="submit-card">
+        <div class="submit-info">
+          <i class="pi pi-info-circle"></i>
+          <p>Please review all information before submitting your transfer request.</p>
+        </div>
+        <div class="submit-actions">
           <button
             pButton
             pRipple
-            icon="pi pi-trash"
-            class="action-btn action-btn-delete"
-            (click)="removeFile(file)"
+            label="Submit Transfer Request"
+            icon="pi pi-send"
+            class="btn-submit"
+            [disabled]="transferForm.invalid || isSaving"
+            (click)="saveTransferRequest()"
+          ></button>
+          <button
+            pButton
+            pRipple
+            label="Cancel"
+            icon="pi pi-times"
+            class="btn-cancel"
+            (click)="cancel()"
           ></button>
         </div>
       </div>
@@ -304,4 +513,4 @@
   </form>
 </div>
 
-<p-toast></p-toast>
+<p-toast position="top-right"></p-toast>

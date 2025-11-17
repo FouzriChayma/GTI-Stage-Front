@@ -121,6 +121,39 @@
               styleClass="w-full md:w-[30rem] mb-8"
             ></p-dropdown>
 
+            <label for="profilePhoto" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Profile Photo (Optional)</label>
+            <div class="mb-8">
+              <div *ngIf="profilePhotoPreview" class="mb-4 flex items-center gap-4">
+                <img 
+                  [src]="profilePhotoPreview" 
+                  alt="Profile Photo Preview" 
+                  class="w-24 h-24 object-cover rounded-full border-2 border-primary"
+                />
+                <button
+                  pButton
+                  pRipple
+                  label="Remove"
+                  icon="pi pi-times"
+                  class="p-button-text p-button-danger"
+                  (click)="removePhoto()"
+                ></button>
+              </div>
+              <p-fileUpload
+                mode="basic"
+                chooseLabel="Choose Photo"
+                accept="image/png,image/jpeg,image/jpg"
+                [maxFileSize]="5000000"
+                (onSelect)="onFileSelect($event)"
+                styleClass="w-full md:w-[30rem]"
+                [auto]="false"
+                [showUploadButton]="false"
+                [showCancelButton]="false"
+              ></p-fileUpload>
+              <small class="text-muted-color text-xs mt-2 block">
+                Maximum file size: 5MB. Allowed formats: PNG, JPEG
+              </small>
+            </div>
+
             <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Password</label>
             <p-password
               id="password1"

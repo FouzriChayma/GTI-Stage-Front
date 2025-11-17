@@ -1,65 +1,67 @@
-import { Injectable } from '@angular/core';
-import {
-  HttpInterceptor,
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpErrorResponse,
-} from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
-import { AuthService } from '../services/auth.service';
+import { HttpInterceptorFn, HttpErrorResponse, HttpEvent } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { User } from '../models/User';
+import { Observable, catchError, switchMap, throwError } from 'rxjs';
+import { AuthService } from '../services/auth.service';
 
-@Injectable()
-export class AuthInterceptor implements HttpInterceptor {
-  private isRefreshing = false;
+let isRefreshing = false;
 
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
+export const authInterceptor: HttpInterceptorFn = (req, next): Observable<HttpEvent<unknown>> => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  
+  const token = authService.getToken();
+  let authReq = req;
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = this.authService.getToken();
-    let authReq = req;
-
-    if (token && !req.url.includes('/api/auth/login') && !req.url.includes('/api/auth/refresh-token')) {
+  if (token && !req.url.includes('/api/auth/login') && !req.url.includes('/api/auth/refresh-token')) {
+    // For FormData requests, don't set Content-Type (browser will set it with boundary)
+    const isFormData = req.body instanceof FormData;
+    if (isFormData) {
+      authReq = req.clone({
+        setHeaders: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+    } else {
       authReq = req.clone({
         headers: req.headers.set('Authorization', `Bearer ${token}`),
       });
     }
-
-    return next.handle(authReq).pipe(
-      catchError((error: HttpErrorResponse) => {
-        if (error.status === 401 && !req.url.includes('/api/auth/refresh-token') && !this.isRefreshing) {
-          return this.handle401Error(authReq, next);
-        }
-        return throwError(() => error);
-      })
-    );
   }
 
-  private handle401Error(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    this.isRefreshing = true;
-    return this.authService.refreshToken().pipe(
-      switchMap((response: User) => {
-        this.isRefreshing = false;
-        const authReq = req.clone({
-          headers: req.headers.set('Authorization', `Bearer ${response.token}`),
-        });
-        return next.handle(authReq);
-      }),
-      catchError((error) => {
-        this.isRefreshing = false;
-        this.authService.logout().subscribe({
-          next: () => {
-            this.router.navigate(['/login']);
-          },
-        });
-        return throwError(() => new Error('Session expired. Please log in again.'));
-      })
-    );
-  }
+  return next(authReq).pipe(
+    catchError((error: HttpErrorResponse) => {
+      if (error.status === 401 && !req.url.includes('/api/auth/refresh-token') && !isRefreshing) {
+        return handle401Error(authReq, next, authService, router);
+      }
+      return throwError(() => error) as Observable<HttpEvent<unknown>>;
+    })
+  );
+};
+
+function handle401Error(
+  req: any,
+  next: any,
+  authService: AuthService,
+  router: Router
+): Observable<HttpEvent<unknown>> {
+  isRefreshing = true;
+  return authService.refreshToken().pipe(
+    switchMap((response: any) => {
+      isRefreshing = false;
+      const authReq = req.clone({
+        headers: req.headers.set('Authorization', `Bearer ${response.token}`),
+      });
+      return next(authReq) as Observable<HttpEvent<unknown>>;
+    }),
+    catchError((error) => {
+      isRefreshing = false;
+      authService.logout().subscribe({
+        next: () => {
+          router.navigate(['/login']);
+        },
+      });
+      return throwError(() => new Error('Session expired. Please log in again.')) as Observable<HttpEvent<unknown>>;
+    })
+  );
 }

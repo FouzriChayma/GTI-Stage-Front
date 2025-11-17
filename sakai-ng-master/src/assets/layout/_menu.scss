@@ -2,7 +2,7 @@
 
 .layout-sidebar {
     position: fixed;
-    width: 20rem;
+    width: 20rem; // keep original width
     height: calc(100vh - 8rem);
     z-index: 999;
     overflow-y: auto;
@@ -14,7 +14,7 @@
         left var(--layout-section-transition-duration);
     background-color: var(--surface-overlay);
     border-radius: var(--content-border-radius);
-    padding: 0.5rem 1.5rem;
+    padding: 1rem 1.5rem; // slightly more padding for breathing room
 }
 
 .layout-menu {
@@ -24,11 +24,11 @@
 
     .layout-root-menuitem {
         > .layout-menuitem-root-text {
-            font-size: 0.857rem;
+            font-size: 1.05rem; // bigger font
             text-transform: uppercase;
             font-weight: 700;
             color: var(--text-color);
-            margin: 0.75rem 0;
+            margin: 1rem 0; // more spacing
         }
 
         > a {
@@ -66,18 +66,19 @@
             outline: 0 none;
             color: var(--text-color);
             cursor: pointer;
-            padding: 0.75rem 1rem;
+            padding: 1rem 1rem; // bigger clickable area
             border-radius: var(--content-border-radius);
             transition:
                 background-color var(--element-transition-duration),
                 box-shadow var(--element-transition-duration);
 
             .layout-menuitem-icon {
-                margin-right: 0.5rem;
+                margin-right: 0.75rem; // bigger spacing
+                font-size: 1.2rem; // bigger icon
             }
 
             .layout-submenu-toggler {
-                font-size: 75%;
+                font-size: 85%; // bigger toggler
                 margin-left: auto;
                 transition: transform var(--element-transition-duration);
             }
@@ -101,34 +102,22 @@
             border-radius: var(--content-border-radius);
 
             li {
-                a {
-                    margin-left: 1rem;
-                }
+                a { margin-left: 1.25rem; }
 
                 li {
-                    a {
-                        margin-left: 2rem;
-                    }
+                    a { margin-left: 2.25rem; }
 
                     li {
-                        a {
-                            margin-left: 2.5rem;
-                        }
+                        a { margin-left: 2.75rem; }
 
                         li {
-                            a {
-                                margin-left: 3rem;
-                            }
+                            a { margin-left: 3.25rem; }
 
                             li {
-                                a {
-                                    margin-left: 3.5rem;
-                                }
+                                a { margin-left: 3.75rem; }
 
                                 li {
-                                    a {
-                                        margin-left: 4rem;
-                                    }
+                                    a { margin-left: 4.25rem; }
                                 }
                             }
                         }

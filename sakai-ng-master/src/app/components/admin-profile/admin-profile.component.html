@@ -1,0 +1,387 @@
+<div *ngIf="isLoading" class="flex items-center justify-center min-h-screen">
+  <div class="loading-spinner"></div>
+</div>
+
+<div class="admin-profile-container" *ngIf="!isLoading && user">
+  <!-- Header -->
+  <div class="profile-header">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Admin Profile</h1>
+      <div class="flex gap-2">
+        <p-button 
+          icon="pi pi-chart-bar" 
+          label="Statistics" 
+          [rounded]="true" 
+          [outlined]="true"
+          (onClick)="navigateToStats()">
+        </p-button>
+        <p-button 
+          icon="pi pi-arrows-h" 
+          label="Transfer Requests" 
+          [rounded]="true" 
+          [outlined]="true"
+          (onClick)="navigateToTransferRequests()">
+        </p-button>
+        <p-button 
+          icon="pi pi-calendar" 
+          label="Appointments" 
+          [rounded]="true" 
+          [outlined]="true"
+          (onClick)="navigateToAppointments()">
+        </p-button>
+      </div>
+    </div>
+    
+    <div class="profile-info-card">
+      <div class="flex items-center gap-6">
+        <div class="avatar-section relative">
+          <img 
+            *ngIf="profilePhotoUrl" 
+            [src]="profilePhotoUrl" 
+            alt="Profile Photo"
+            class="w-24 h-24 rounded-full object-cover" />
+          <p-avatar 
+            *ngIf="!profilePhotoUrl"
+            [label]="getUserInitials()" 
+            size="xlarge" 
+            shape="circle"
+            styleClass="w-24 h-24">
+          </p-avatar>
+          <p-button 
+            icon="pi pi-camera" 
+            [rounded]="true" 
+            size="small"
+            class="avatar-edit-btn"
+            (onClick)="openPhotoUploadDialog()"
+            pTooltip="Change profile photo"
+            tooltipPosition="top">
+          </p-button>
+        </div>
+        
+        <div class="profile-info">
+          <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            {{ user.firstName }} {{ user.lastName }}
+          </h2>
+          <p class="text-gray-600 dark:text-gray-400">{{ user.email }}</p>
+          <p class="text-gray-600 dark:text-gray-400">{{ user.phoneNumber }}</p>
+          <div class="flex gap-2 mt-2">
+            <p-chip [label]="user.role" icon="pi pi-shield" styleClass="bg-purple-100 text-purple-800"></p-chip>
+            <p-chip [label]="'Member since ' + getMemberSince()" styleClass="bg-blue-100 text-blue-800"></p-chip>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content with Tabs -->
+  <div class="profile-content">
+    <p-tabView styleClass="profile-tabs">
+      <!-- Personal Information Tab -->
+      <p-tabPanel header="Personal Information" leftIcon="pi pi-user">
+        <div class="tab-content">
+          <div class="section-header">
+            <h2 class="section-title">Personal Details</h2>
+            <p-button 
+              [label]="editMode ? 'Cancel' : 'Edit Profile'" 
+              [icon]="editMode ? 'pi pi-times' : 'pi pi-pencil'"
+              [outlined]="true"
+              [rounded]="true"
+              size="small"
+              (onClick)="editMode ? cancelEdit() : toggleEditMode()">
+            </p-button>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label class="field-label">
+                <i class="pi pi-user"></i>
+                First Name
+              </label>
+              <input 
+                type="text" 
+                pInputText 
+                [(ngModel)]="user.firstName" 
+                [disabled]="!editMode"
+                class="field-input" />
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">
+                <i class="pi pi-user"></i>
+                Last Name
+              </label>
+              <input 
+                type="text" 
+                pInputText 
+                [(ngModel)]="user.lastName" 
+                [disabled]="!editMode"
+                class="field-input" />
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">
+                <i class="pi pi-envelope"></i>
+                Email Address
+              </label>
+              <input 
+                type="email" 
+                pInputText 
+                [(ngModel)]="user.email" 
+                [disabled]="!editMode"
+                class="field-input" />
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">
+                <i class="pi pi-phone"></i>
+                Phone Number
+              </label>
+              <input 
+                type="tel" 
+                pInputText 
+                [(ngModel)]="user.phoneNumber" 
+                [disabled]="!editMode"
+                class="field-input" />
+            </div>
+          </div>
+
+          <div *ngIf="editMode" class="flex gap-2 justify-content-end mt-4">
+            <p-button 
+              label="Save Changes" 
+              icon="pi pi-check"
+              [rounded]="true"
+              (onClick)="saveProfile()"
+              [loading]="isLoading">
+            </p-button>
+            <p-button 
+              label="Cancel" 
+              icon="pi pi-times"
+              [rounded]="true"
+              [outlined]="true"
+              (onClick)="cancelEdit()"
+              [disabled]="isLoading">
+            </p-button>
+          </div>
+        </div>
+      </p-tabPanel>
+
+      <!-- Security Tab -->
+      <p-tabPanel header="Security" leftIcon="pi pi-shield">
+        <div class="tab-content">
+          <h2 class="section-title">Security Settings</h2>
+          
+          <div class="security-section">
+            <div class="security-item">
+              <div class="security-info">
+                <i class="pi pi-lock security-icon"></i>
+                <div>
+                  <div class="security-label">Change Password</div>
+                  <div class="security-description">Update your password regularly for better security</div>
+                </div>
+              </div>
+              <p-button 
+                label="Change Password" 
+                [outlined]="true"
+                [rounded]="true"
+                size="small"
+                (onClick)="openPasswordDialog()">
+              </p-button>
+            </div>
+          </div>
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+  </div>
+
+  <!-- Admin Info Message -->
+  <p-card class="mb-6 mt-6">
+    <div class="p-4">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Administrator Account</h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-4">
+        As an administrator, you can manage all system resources from the dedicated management pages.
+      </p>
+      <div class="flex flex-wrap gap-2">
+        <p-button 
+          icon="pi pi-chart-bar" 
+          label="View Statistics" 
+          [rounded]="true"
+          (onClick)="navigateToStats()">
+        </p-button>
+        <p-button 
+          icon="pi pi-arrows-h" 
+          label="Manage Transfer Requests" 
+          [rounded]="true"
+          [outlined]="true"
+          (onClick)="navigateToTransferRequests()">
+        </p-button>
+        <p-button 
+          icon="pi pi-calendar" 
+          label="Manage Appointments" 
+          [rounded]="true"
+          [outlined]="true"
+          (onClick)="navigateToAppointments()">
+        </p-button>
+        <p-button 
+          icon="pi pi-users" 
+          label="Manage Users" 
+          [rounded]="true"
+          [outlined]="true"
+          (onClick)="navigateToUsers()">
+        </p-button>
+      </div>
+    </div>
+  </p-card>
+</div>
+
+<p-toast></p-toast>
+
+<!-- Photo Upload Dialog -->
+<p-dialog 
+  [(visible)]="displayPhotoUploadDialog" 
+  [modal]="true" 
+  [style]="{width: '90vw', maxWidth: '500px'}"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Upload Profile Photo"
+  (onHide)="closePhotoUploadDialog()">
+  
+  <div class="photo-upload-dialog">
+    <div class="mb-4">
+      <p-fileUpload
+        mode="basic"
+        chooseLabel="Choose Photo"
+        accept="image/png,image/jpeg,image/jpg"
+        [maxFileSize]="5000000"
+        (onSelect)="onFileSelect($event)"
+        styleClass="w-full"
+        [auto]="false"
+        [showUploadButton]="false"
+        [showCancelButton]="false">
+      </p-fileUpload>
+      <small class="text-gray-500 text-xs mt-2 block">
+        Maximum file size: 5MB. Allowed formats: PNG, JPEG
+      </small>
+    </div>
+
+    <div *ngIf="selectedFile && profilePhotoUrl" class="mb-4 text-center">
+      <img 
+        [src]="profilePhotoUrl" 
+        alt="Photo Preview" 
+        class="photo-preview"
+      />
+    </div>
+
+    <div *ngIf="profilePhotoUrl && user?.profilePhotoPath" class="mb-4">
+      <p-button 
+        label="Delete Current Photo" 
+        icon="pi pi-trash"
+        severity="danger"
+        [outlined]="true"
+        [rounded]="true"
+        (onClick)="deleteProfilePhoto()"
+        [disabled]="isLoading">
+      </p-button>
+    </div>
+
+    <div class="flex gap-2 justify-content-end">
+      <p-button 
+        label="Cancel" 
+        icon="pi pi-times"
+        [rounded]="true"
+        [outlined]="true"
+        (onClick)="closePhotoUploadDialog()"
+        [disabled]="isLoading">
+      </p-button>
+      <p-button 
+        label="Upload" 
+        icon="pi pi-upload"
+        [rounded]="true"
+        (onClick)="uploadProfilePhoto()"
+        [disabled]="!selectedFile || isLoading"
+        [loading]="isLoading">
+      </p-button>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Password Change Dialog -->
+<p-dialog 
+  [(visible)]="displayPasswordDialog" 
+  [modal]="true" 
+  [style]="{width: '90vw', maxWidth: '500px'}"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Change Password"
+  (onHide)="closePasswordDialog()">
+  
+  <div class="password-change-dialog">
+    <div class="form-field mb-4">
+      <label class="field-label">
+        <i class="pi pi-lock"></i>
+        Current Password
+      </label>
+      <p-password
+        [(ngModel)]="passwordForm.currentPassword"
+        [feedback]="false"
+        [toggleMask]="true"
+        styleClass="w-full"
+        placeholder="Enter current password">
+      </p-password>
+    </div>
+
+    <div class="form-field mb-4">
+      <label class="field-label">
+        <i class="pi pi-key"></i>
+        New Password
+      </label>
+      <p-password
+        [(ngModel)]="passwordForm.newPassword"
+        [feedback]="true"
+        [toggleMask]="true"
+        styleClass="w-full"
+        placeholder="Enter new password">
+      </p-password>
+    </div>
+
+    <div class="form-field mb-4">
+      <label class="field-label">
+        <i class="pi pi-key"></i>
+        Confirm New Password
+      </label>
+      <p-password
+        [(ngModel)]="passwordForm.confirmPassword"
+        [feedback]="false"
+        [toggleMask]="true"
+        styleClass="w-full"
+        placeholder="Confirm new password">
+      </p-password>
+    </div>
+
+    <small class="text-gray-500 text-xs block mb-4">
+      Password must be at least 6 characters long.
+    </small>
+
+    <div class="flex gap-2 justify-content-end">
+      <p-button 
+        label="Cancel" 
+        icon="pi pi-times"
+        [rounded]="true"
+        [outlined]="true"
+        (onClick)="closePasswordDialog()"
+        [disabled]="isLoading">
+      </p-button>
+      <p-button 
+        label="Change Password" 
+        icon="pi pi-check"
+        [rounded]="true"
+        (onClick)="changePassword()"
+        [disabled]="isLoading"
+        [loading]="isLoading">
+      </p-button>
+    </div>
+  </div>
+</p-dialog>
+
+<p-confirmDialog></p-confirmDialog>

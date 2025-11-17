@@ -1,0 +1,224 @@
+.admin-profile-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+}
+
+.profile-header {
+  margin-bottom: 2rem;
+}
+
+.profile-info-card {
+  background: white !important;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  color: #1f2937 !important; // Force dark text on white background
+}
+
+.avatar-section {
+  position: relative;
+  display: inline-block;
+
+  .avatar-edit-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: #667eea !important;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    
+    &:hover {
+      background: #5568d3 !important;
+    }
+  }
+}
+
+.profile-content {
+  margin-top: 2rem;
+}
+
+.profile-tabs {
+  ::ng-deep .p-tabview-nav {
+    background: white;
+    border-radius: 12px 12px 0 0;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  ::ng-deep .p-tabview-panels {
+    background: white;
+    border-radius: 0 0 12px 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.tab-content {
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+  }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .field-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+
+    i {
+      color: #667eea;
+    }
+  }
+
+  .field-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    &:disabled {
+      background-color: #f3f4f6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.security-section {
+  .security-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    background: #f9fafb;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+
+    .security-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex: 1;
+
+      .security-icon {
+        font-size: 1.5rem;
+        color: #667eea;
+      }
+
+      .security-label {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+      }
+
+      .security-description {
+        font-size: 0.875rem;
+        color: #6b7280;
+      }
+    }
+  }
+}
+
+.photo-upload-dialog {
+  .photo-preview {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.password-change-dialog {
+  .form-field {
+    margin-bottom: 1rem;
+  }
+}
+
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Dark mode support - profile-info-card stays white
+@media (prefers-color-scheme: dark) {
+  .profile-info-card {
+    background: white !important;
+    color: #1f2937 !important;
+  }
+
+  .profile-tabs ::ng-deep .p-tabview-nav,
+  .profile-tabs ::ng-deep .p-tabview-panels {
+    background: #1f2937;
+    color: #f9fafb;
+  }
+
+  .form-field .field-label {
+    color: #e5e7eb;
+  }
+
+  .form-field .field-input {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+
+    &:disabled {
+      background-color: #4b5563;
+    }
+  }
+
+  .security-section .security-item {
+    background: #374151;
+
+    .security-label {
+      color: #e5e7eb;
+    }
+
+    .security-description {
+      color: #9ca3af;
+    }
+  }
+}

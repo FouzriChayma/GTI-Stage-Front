@@ -1,0 +1,565 @@
+.schedule-meeting-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  padding-bottom: 2rem;
+}
+
+// Gradient Header with floating decorations
+.meeting-header {
+  position: relative;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 4rem 2rem 3rem;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+
+  .floating-decoration {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    animation: float 6s ease-in-out infinite;
+
+    &.decoration-1 {
+      width: 300px;
+      height: 300px;
+      top: -150px;
+      right: -100px;
+      animation-delay: 0s;
+    }
+
+    &.decoration-2 {
+      width: 200px;
+      height: 200px;
+      bottom: -100px;
+      left: -50px;
+      animation-delay: 2s;
+    }
+
+    &.decoration-3 {
+      width: 150px;
+      height: 150px;
+      top: 50%;
+      left: 10%;
+      animation-delay: 4s;
+    }
+  }
+
+  .header-content {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    color: white;
+    width: 100%;
+
+    > div:first-child {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .header-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(10px);
+      animation: slideDown 0.6s ease-out;
+
+      svg {
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+      }
+    }
+
+    .header-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      animation: slideDown 0.6s ease-out 0.1s both;
+    }
+
+    .header-subtitle {
+      font-size: 1.1rem;
+      opacity: 0.95;
+      margin: 0;
+      animation: slideDown 0.6s ease-out 0.2s both;
+    }
+
+    .slots-button {
+      background: rgba(255, 255, 255, 0.2) !important;
+      border: 2px solid rgba(255, 255, 255, 0.3) !important;
+      color: white !important;
+      padding: 0.75rem 1.5rem;
+      border-radius: 50px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      cursor: default;
+      animation: slideDown 0.6s ease-out 0.3s both;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.25) !important;
+      }
+    }
+  }
+}
+
+// Main Content
+.meeting-content {
+  max-width: 1400px;
+  margin: -2rem auto 0;
+  padding: 0 1rem 2rem;
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 1.5rem;
+  animation: slideUp 0.6s ease-out 0.3s both;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Calendar Section
+.calendar-section {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.month-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+
+  .nav-button {
+    color: #667eea !important;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background: #f0f0f0 !important;
+    }
+  }
+
+  .month-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+  }
+}
+
+.week-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  .week-day {
+    text-align: center;
+    font-weight: 600;
+    color: #718096;
+    font-size: 0.875rem;
+    padding: 0.5rem;
+  }
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.75rem;
+}
+
+.day-card {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid transparent;
+
+  &.empty-day {
+    cursor: default;
+    visibility: hidden;
+  }
+
+  &.past-day {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #f7fafc;
+  }
+
+  &.has-slots {
+    background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+    border-color: #38b2ac;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(56, 178, 172, 0.3);
+    }
+  }
+
+  &.fully-booked {
+    background: linear-gradient(135deg, #fed7d7 0%, #fc8181 100%);
+    border-color: #e53e3e;
+    cursor: not-allowed;
+  }
+
+  &.selected-day {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+    transform: scale(1.05);
+    z-index: 10;
+
+    .day-number {
+      color: white;
+      font-weight: 700;
+    }
+
+    .day-status {
+      color: white;
+    }
+
+    .selected-label {
+      display: block;
+    }
+  }
+
+  .day-content {
+    padding: 0.75rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .day-number {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1a202c;
+    line-height: 1;
+  }
+
+  .day-status {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: auto;
+
+    &.full {
+      color: #c53030;
+    }
+
+    &.slots {
+      color: #2c7a7b;
+    }
+  }
+
+  .selected-label {
+    display: none;
+    font-size: 0.7rem;
+    color: white;
+    font-weight: 600;
+    margin-top: 0.25rem;
+    text-align: center;
+  }
+}
+
+// Time Slots Sidebar
+.time-slots-sidebar {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+  position: sticky;
+  top: 2rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  }
+
+  .sidebar-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #e2e8f0;
+
+    .sidebar-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .selected-date-text {
+      font-size: 0.95rem;
+      color: #718096;
+      margin: 0;
+    }
+  }
+}
+
+.time-slots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.time-slot-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+
+  &.available {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #166534;
+
+    &:hover {
+      background: #dcfce7;
+      transform: translateX(4px);
+    }
+
+    i {
+      color: #22c55e;
+    }
+  }
+
+  &.unavailable {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+    cursor: not-allowed;
+    opacity: 0.6;
+
+    i {
+      color: #ef4444;
+    }
+  }
+
+  &.selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    transform: scale(1.02);
+
+    i {
+      color: white;
+    }
+  }
+
+  i {
+    font-size: 1.25rem;
+  }
+
+  .time-text {
+    font-weight: 600;
+    font-size: 1rem;
+  }
+}
+
+// Meeting Details Form
+.meeting-details-form {
+  padding-top: 2rem;
+  border-top: 2px solid #e2e8f0;
+
+  .form-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 1.5rem 0;
+  }
+
+  .form-field {
+    margin-bottom: 1.5rem;
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  .confirm-button {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border: none !important;
+    padding: 1rem !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
+    transition: all 0.3s ease !important;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5) !important;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// No Selection Message
+.no-selection-message {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+
+  i {
+    font-size: 4rem;
+    color: #cbd5e0;
+    margin-bottom: 1rem;
+    display: block;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  p {
+    font-size: 1.1rem;
+    color: #718096;
+    margin: 0;
+  }
+}
+
+// Loading
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+
+  .loading-text {
+    color: #718096;
+    font-size: 1.1rem;
+  }
+}
+
+// Animations
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .meeting-header {
+    padding: 3rem 1.5rem 2rem;
+
+    .header-content {
+      .header-title {
+        font-size: 2rem;
+      }
+
+      .header-subtitle {
+        font-size: 1rem;
+      }
+    }
+  }
+
+  .meeting-content {
+    padding: 0 1rem 1rem;
+    margin-top: -1.5rem;
+  }
+
+  .calendar-section,
+  .time-slots-sidebar {
+    padding: 1.5rem;
+  }
+
+  .time-slots-sidebar {
+    position: static;
+  }
+}
+
+// PrimeNG Overrides
+::ng-deep {
+  .p-dropdown {
+    width: 100%;
+  }
+
+  .p-calendar {
+    width: 100%;
+  }
+}
+

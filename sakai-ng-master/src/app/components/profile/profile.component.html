@@ -1,0 +1,1056 @@
+<topbar-widget class="py-6 px-6 mx-0 md:mx-12 lg:mx-20 lg:px-20 flex items-center justify-between relative lg:static" />
+
+<div *ngIf="isLoading" class="flex items-center justify-center min-h-screen">
+  <div class="loading-spinner"></div>
+</div>
+
+<div class="profile-container" *ngIf="!isLoading && user">
+  <!-- Hero Header -->
+  <div class="profile-hero">
+    <div class="floating-shape shape-1"></div>
+    <div class="floating-shape shape-2"></div>
+    <div class="floating-shape shape-3"></div>
+    
+    <div class="profile-hero-content">
+      <p-button 
+        icon="pi pi-arrow-left" 
+        [rounded]="true" 
+        [text]="true" 
+        severity="secondary"
+        (onClick)="navigateBack()"
+        class="back-button">
+      </p-button>
+      
+      <div class="profile-header-info">
+        <div class="avatar-section">
+          <img 
+            *ngIf="profilePhotoUrl" 
+            [src]="profilePhotoUrl" 
+            alt="Profile Photo"
+            class="profile-avatar-img" />
+          <p-avatar 
+            *ngIf="!profilePhotoUrl"
+            [label]="getUserInitials()" 
+            size="xlarge" 
+            shape="circle"
+            styleClass="profile-avatar">
+          </p-avatar>
+          <p-button 
+            icon="pi pi-camera" 
+            [rounded]="true" 
+            size="small"
+            class="avatar-edit-btn"
+            (onClick)="openPhotoUploadDialog()"
+            pTooltip="Change profile photo"
+            tooltipPosition="top">
+          </p-button>
+        </div>
+        
+        <div class="profile-header-text">
+          <h1 class="profile-name">{{ user.firstName }} {{ user.lastName }}</h1>
+          <p class="profile-email">{{ user.email }}</p>
+          <div class="profile-badges">
+            <p-chip [label]="user.role" icon="pi pi-user" styleClass="premium-badge"></p-chip>
+            <p-chip [label]="'Member since ' + getMemberSince()" styleClass="member-badge"></p-chip>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <!-- Account Balance removed for CLIENT and CHARGE_CLIENTELE -->
+
+    <div class="stat-card">
+      <div class="stat-icon bg-green-100">
+        <i class="pi pi-arrow-right-arrow-left text-green-600"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.totalTransfers }}</div>
+        <div class="stat-label">Total Transfers</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon bg-purple-100">
+        <i class="pi pi-calendar text-purple-600"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.totalAppointments }}</div>
+        <div class="stat-label">Appointments</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon bg-orange-100">
+        <i class="pi pi-clock text-orange-600"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.pendingTransfers }}</div>
+        <div class="stat-label">Pending</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="profile-content">
+    <p-tabView styleClass="profile-tabs">
+      <!-- Personal Information Tab -->
+      <p-tabPanel header="Personal Information" leftIcon="pi pi-user">
+        <div class="tab-content">
+          <div class="section-header">
+            <h2 class="section-title">Personal Details</h2>
+            <p-button 
+              [label]="editMode ? 'Cancel' : 'Edit Profile'" 
+              [icon]="editMode ? 'pi pi-times' : 'pi pi-pencil'"
+              [outlined]="true"
+              [rounded]="true"
+              size="small"
+              (onClick)="editMode ? cancelEdit() : toggleEditMode()">
+            </p-button>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label class="field-label">
+                <i class="pi pi-user"></i>
+                First Name
+              </label>
+              <input 
+                type="text" 
+                pInputText 
+                [(ngModel)]="user.firstName" 
+                [disabled]="!editMode"
+                class="field-input" />
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">
+                <i class="pi pi-user"></i>
+                Last Name
+              </label>
+              <input 
+                type="text" 
+                pInputText 
+                [(ngModel)]="user.lastName" 
+                [disabled]="!editMode"
+                class="field-input" />
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">
+                <i class="pi pi-envelope"></i>
+                Email Address
+              </label>
+              <input 
+                type="email" 
+                pInputText 
+                [(ngModel)]="user.email" 
+                [disabled]="!editMode"
+                class="field-input" />
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">
+                <i class="pi pi-phone"></i>
+                Phone Number
+              </label>
+              <input 
+                type="tel" 
+                pInputText 
+                [(ngModel)]="user.phoneNumber" 
+                [disabled]="!editMode"
+                class="field-input" />
+            </div>
+          </div>
+
+          <div class="form-actions" *ngIf="editMode">
+            <p-button 
+              label="Save Changes" 
+              icon="pi pi-check"
+              [rounded]="true"
+              (onClick)="saveProfile()">
+            </p-button>
+          </div>
+        </div>
+      </p-tabPanel>
+
+      <!-- My Transfers Tab -->
+      <p-tabPanel [header]="isChargeClientele() ? 'Transfer Requests (Pending/Info Requested)' : 'My Transfers'" leftIcon="pi pi-arrow-right-arrow-left">
+        <div class="tab-content">
+          <div class="section-header">
+            <h2 class="section-title">Transfer Requests</h2>
+            <p-button 
+              *ngIf="!isChargeClientele()"
+              label="New Transfer" 
+              icon="pi pi-plus"
+              [rounded]="true" 
+              size="small"
+              (onClick)="navigateToTransferRequest()">
+            </p-button>
+          </div>
+
+          <p-table 
+            [value]="transfers" 
+            [loading]="isLoadingTransfers"
+            [paginator]="true" 
+            [rows]="10"
+            [rowHover]="true"
+            styleClass="transfers-table">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Currency</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-transfer>
+              <tr>
+                <td>{{ transfer.idTransferRequest || transfer.id || 'N/A' }}</td>
+                <td>{{ transfer.transferType || 'N/A' }}</td>
+                <td>{{ transfer.amount ? formatCurrency(transfer.amount, transfer.currency) : 'N/A' }}</td>
+                <td>{{ transfer.currency || 'N/A' }}</td>
+                <td>
+                  <p-tag 
+                    [value]="transfer.status || 'UNKNOWN'" 
+                    [severity]="getTransferStatusSeverity(transfer.status)">
+                  </p-tag>
+                </td>
+                <td>{{ transfer.issueDate ? formatDate(transfer.issueDate) : 'N/A' }}</td>
+                <td>
+                  <div class="flex gap-2">
+                    <p-button 
+                      *ngIf="canPerformAction(transfer.status)"
+                      icon="pi pi-check" 
+                      [rounded]="true"
+                      [outlined]="true"
+                      severity="success"
+                      size="small"
+                      pTooltip="Validate"
+                      (onClick)="validateTransfer(transfer.idTransferRequest!)"
+                      [disabled]="isLoadingTransfers">
+                    </p-button>
+                    <p-button 
+                      *ngIf="canPerformAction(transfer.status)"
+                      icon="pi pi-times" 
+                      [rounded]="true"
+                      [outlined]="true"
+                      severity="danger"
+                      size="small"
+                      pTooltip="Reject"
+                      (onClick)="rejectTransfer(transfer.idTransferRequest!)"
+                      [disabled]="isLoadingTransfers">
+                    </p-button>
+                    <p-button 
+                      *ngIf="canPerformAction(transfer.status)"
+                      icon="pi pi-question" 
+                      [rounded]="true"
+                      [outlined]="true"
+                      severity="warn"
+                      size="small"
+                      pTooltip="Request Info"
+                      (onClick)="requestInfo(transfer.idTransferRequest!)"
+                      [disabled]="isLoadingTransfers">
+                    </p-button>
+                    <p-button 
+                      icon="pi pi-eye" 
+                      [rounded]="true" 
+                      [text]="true"
+                      size="small"
+                      pTooltip="View Details"
+                      (onClick)="viewTransferDetails(transfer)">
+                    </p-button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="7" class="text-center py-8">
+                  <i class="pi pi-inbox text-4xl text-gray-400 mb-4"></i>
+                  <p class="text-gray-500">No transfer requests found</p>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </p-tabPanel>
+
+      <!-- My Appointments Tab -->
+      <p-tabPanel [header]="isChargeClientele() ? 'Appointment Management' : 'My Appointments'" leftIcon="pi pi-calendar">
+        <div class="tab-content">
+          <div class="section-header">
+            <h2 class="section-title">{{ isChargeClientele() ? 'All Client Appointments' : 'Appointments' }}</h2>
+            <p-button 
+              *ngIf="!isChargeClientele()"
+              label="Schedule Meeting" 
+              icon="pi pi-plus"
+              [rounded]="true" 
+              size="small"
+              (onClick)="navigateToScheduleMeeting()">
+            </p-button>
+          </div>
+
+          <p-table 
+            [value]="appointments" 
+            [loading]="isLoadingAppointments"
+            [paginator]="true" 
+            [rows]="10"
+            [rowHover]="true"
+            styleClass="appointments-table">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>ID</th>
+                <th *ngIf="isChargeClientele()">Client</th>
+                <th>Date & Time</th>
+                <th>Duration</th>
+                <th>Status</th>
+                <th>Notes</th>
+                <th>Actions</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-appointment>
+              <tr>
+                <td>{{ appointment.idAppointment || 'N/A' }}</td>
+                <td *ngIf="isChargeClientele()">
+                  <div *ngIf="appointment.user">
+                    <div class="font-medium">{{ appointment.user.firstName }} {{ appointment.user.lastName }}</div>
+                    <div class="text-sm text-gray-500">{{ appointment.user.email }}</div>
+                  </div>
+                  <span *ngIf="!appointment.user">N/A</span>
+                </td>
+                <td>{{ formatAppointmentDateTime(appointment.appointmentDateTime) }}</td>
+                <td>{{ appointment.durationMinutes || 30 }} min</td>
+                <td>
+                  <p-tag 
+                    [value]="appointment.status || 'SCHEDULED'" 
+                    [severity]="getAppointmentStatusSeverity(appointment.status || 'SCHEDULED')">
+                  </p-tag>
+                </td>
+                <td>{{ appointment.notes || 'N/A' }}</td>
+                <td>
+                  <div class="flex gap-2">
+                    <p-button 
+                      icon="pi pi-eye" 
+                      [rounded]="true" 
+                      [text]="true"
+                      size="small"
+                      pTooltip="View Details"
+                      (onClick)="viewAppointmentDetails(appointment)">
+                    </p-button>
+                    <p-button 
+                      *ngIf="isChargeClientele() && canManageAppointment(appointment.status || 'SCHEDULED')"
+                      icon="pi pi-check" 
+                      [rounded]="true"
+                      [outlined]="true"
+                      severity="success"
+                      size="small"
+                      pTooltip="Confirm"
+                      (onClick)="confirmAppointment(appointment.idAppointment!)"
+                      [disabled]="isLoadingAppointments">
+                    </p-button>
+                    <p-button 
+                      *ngIf="isChargeClientele() && canManageAppointment(appointment.status || 'SCHEDULED')"
+                      icon="pi pi-times" 
+                      [rounded]="true"
+                      [outlined]="true"
+                      severity="danger"
+                      size="small"
+                      pTooltip="Cancel"
+                      (onClick)="cancelAppointment(appointment.idAppointment!)"
+                      [disabled]="isLoadingAppointments">
+                    </p-button>
+                    <p-button 
+                      *ngIf="isChargeClientele() && (appointment.status === 'CONFIRMED' || appointment.status === 'SCHEDULED')"
+                      icon="pi pi-check-circle" 
+                      [rounded]="true"
+                      [outlined]="true"
+                      severity="info"
+                      size="small"
+                      pTooltip="Mark as Completed"
+                      (onClick)="completeAppointment(appointment.idAppointment!)"
+                      [disabled]="isLoadingAppointments">
+                    </p-button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td [attr.colspan]="isChargeClientele() ? 7 : 6" class="text-center py-8">
+                  <i class="pi pi-calendar-times text-4xl text-gray-400 mb-4"></i>
+                  <p class="text-gray-500">{{ isChargeClientele() ? 'No appointments found' : 'No appointments scheduled' }}</p>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </p-tabPanel>
+
+      <!-- Account Information Tab -->
+      <p-tabPanel header="Account Details" leftIcon="pi pi-wallet">
+        <div class="tab-content">
+          <h2 class="section-title">Account Information</h2>
+          
+          <div class="info-card">
+            <div class="info-row">
+              <div class="info-label">
+                <i class="pi pi-id-card"></i>
+                User ID
+              </div>
+              <div class="info-value">{{ user.id }}</div>
+            </div>
+            <p-divider></p-divider>
+            
+            <div class="info-row">
+              <div class="info-label">
+                <i class="pi pi-tag"></i>
+                Role
+              </div>
+              <div class="info-value">
+                <p-chip [label]="user.role" styleClass="account-type-chip"></p-chip>
+              </div>
+            </div>
+            <p-divider></p-divider>
+            
+            <div class="info-row">
+              <div class="info-label">
+                <i class="pi pi-calendar"></i>
+                Member Since
+              </div>
+              <div class="info-value">{{ getMemberSince() }}</div>
+            </div>
+            <p-divider></p-divider>
+            
+            <div class="info-row">
+              <div class="info-label">
+                <i class="pi pi-check-circle"></i>
+                Account Status
+              </div>
+              <div class="info-value">
+                <p-tag 
+                  [value]="user.isActive ? 'Active' : 'Inactive'" 
+                  [severity]="user.isActive ? 'success' : 'danger'">
+                </p-tag>
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-tabPanel>
+
+      <!-- Security Tab -->
+      <p-tabPanel header="Security" leftIcon="pi pi-shield">
+        <div class="tab-content">
+          <h2 class="section-title">Security Settings</h2>
+          
+          <div class="security-section">
+            <div class="security-item">
+              <div class="security-info">
+                <i class="pi pi-lock security-icon"></i>
+                <div>
+                  <div class="security-label">Change Password</div>
+                  <div class="security-description">Update your password regularly for better security</div>
+                </div>
+              </div>
+              <p-button 
+                label="Change" 
+                [outlined]="true"
+                [rounded]="true"
+                size="small"
+                (onClick)="openPasswordDialog()">
+              </p-button>
+            </div>
+
+            <p-divider></p-divider>
+
+            <div class="security-item">
+              <div class="security-info">
+                <i class="pi pi-desktop security-icon"></i>
+                <div>
+                  <div class="security-label">Active Sessions</div>
+                  <div class="security-description">Manage devices that are currently logged in</div>
+                </div>
+              </div>
+              <p-button 
+                label="Manage" 
+                [outlined]="true"
+                [rounded]="true"
+                size="small"
+                (onClick)="openSessionsDialog()">
+              </p-button>
+            </div>
+          </div>
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+  </div>
+</div>
+
+<p-toast></p-toast>
+<!-- Photo Upload Dialog -->
+<p-dialog 
+  [(visible)]="displayPhotoUploadDialog" 
+  [modal]="true" 
+  [style]="{width: '90vw', maxWidth: '500px'}"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Upload Profile Photo"
+  (onHide)="closePhotoUploadDialog()">
+  
+  <div class="photo-upload-dialog">
+    <div class="mb-4">
+      <p-fileUpload
+        mode="basic"
+        chooseLabel="Choose Photo"
+        accept="image/png,image/jpeg,image/jpg"
+        [maxFileSize]="5000000"
+        (onSelect)="onFileSelect($event)"
+        styleClass="w-full"
+        [auto]="false"
+        [showUploadButton]="false"
+        [showCancelButton]="false">
+      </p-fileUpload>
+      <small class="text-gray-500 text-xs mt-2 block">
+        Maximum file size: 5MB. Allowed formats: PNG, JPEG
+      </small>
+    </div>
+
+    <div *ngIf="profilePhotoUrl" class="mb-4 text-center">
+      <img 
+        [src]="profilePhotoUrl" 
+        alt="Photo Preview" 
+        class="photo-preview"
+      />
+    </div>
+
+    <div class="flex gap-2 justify-content-end">
+      <p-button 
+        label="Cancel" 
+        icon="pi pi-times" 
+        [rounded]="true"
+        [outlined]="true"
+        (onClick)="closePhotoUploadDialog()"
+        [disabled]="isLoading">
+      </p-button>
+      <p-button 
+        *ngIf="user?.profilePhotoPath"
+        label="Delete Current Photo" 
+        icon="pi pi-trash" 
+        [rounded]="true"
+        severity="danger"
+        [outlined]="true"
+        (onClick)="deleteProfilePhoto()"
+        [disabled]="isLoading">
+      </p-button>
+      <p-button 
+        label="Upload" 
+        icon="pi pi-upload" 
+        [rounded]="true"
+        (onClick)="uploadProfilePhoto()"
+        [disabled]="!selectedFile || isLoading">
+      </p-button>
+    </div>
+  </div>
+</p-dialog>
+
+<p-confirmDialog></p-confirmDialog>
+
+<!-- Change Password Dialog -->
+<p-dialog 
+  [(visible)]="displayPasswordDialog" 
+  [modal]="true" 
+  [style]="{width: '90vw', maxWidth: '500px'}"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Change Password"
+  (onHide)="closePasswordDialog()">
+  
+  <div class="password-change-dialog">
+    <form (ngSubmit)="changePassword()" #passwordForm="ngForm">
+      <div class="mb-4">
+        <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-2">
+          Current Password
+        </label>
+        <input
+          type="password"
+          id="currentPassword"
+          name="currentPassword"
+          [(ngModel)]="passwordFormData.currentPassword"
+          required
+          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Enter your current password">
+      </div>
+
+      <div class="mb-4">
+        <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-2">
+          New Password
+        </label>
+        <input
+          type="password"
+          id="newPassword"
+          name="newPassword"
+          [(ngModel)]="passwordFormData.newPassword"
+          required
+          minlength="6"
+          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Enter your new password">
+        <small class="text-gray-500 text-xs mt-1 block">
+          Password must be at least 6 characters long
+        </small>
+      </div>
+
+      <div class="mb-4">
+        <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">
+          Confirm New Password
+        </label>
+        <input
+          type="password"
+          id="confirmPassword"
+          name="confirmPassword"
+          [(ngModel)]="passwordFormData.confirmPassword"
+          required
+          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Confirm your new password">
+      </div>
+
+      <div class="flex gap-2 justify-content-end">
+        <p-button 
+          label="Cancel" 
+          icon="pi pi-times" 
+          [rounded]="true"
+          [outlined]="true"
+          type="button"
+          (onClick)="closePasswordDialog()"
+          [disabled]="isLoading">
+        </p-button>
+        <p-button 
+          label="Change Password" 
+          icon="pi pi-check" 
+          [rounded]="true"
+          type="submit"
+          [disabled]="!passwordForm.valid || passwordFormData.newPassword !== passwordFormData.confirmPassword || isLoading">
+        </p-button>
+      </div>
+    </form>
+  </div>
+</p-dialog>
+
+<!-- Active Sessions Dialog -->
+<p-dialog 
+  [(visible)]="displaySessionsDialog" 
+  [modal]="true" 
+  [style]="{width: '90vw', maxWidth: '700px'}"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Active Sessions"
+  (onHide)="closeSessionsDialog()">
+  
+  <div class="sessions-dialog">
+    <p class="text-gray-600 mb-4">
+      Manage devices that are currently logged into your account. You can revoke access for any device.
+    </p>
+
+    <div *ngIf="activeSessions.length === 0" class="text-center p-8 text-gray-500">
+      <i class="pi pi-desktop text-4xl mb-2"></i>
+      <p>No active sessions found</p>
+    </div>
+
+    <div *ngIf="activeSessions.length > 0" class="sessions-list">
+      <div *ngFor="let session of activeSessions" class="session-item mb-3 p-4 border border-gray-200 rounded-lg">
+        <div class="flex justify-content-between align-items-center">
+          <div class="flex align-items-center gap-3">
+            <div class="session-icon">
+              <i [class]="session.icon" class="text-2xl"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-gray-900">{{ session.device }}</div>
+              <div class="text-sm text-gray-600">{{ session.location }}</div>
+              <div class="text-xs text-gray-500 mt-1">
+                Last active: {{ session.lastActive }}
+              </div>
+            </div>
+          </div>
+          <div class="flex align-items-center gap-2">
+            <p-tag 
+              *ngIf="session.isCurrent" 
+              value="Current Session" 
+              severity="success"
+              styleClass="text-xs">
+            </p-tag>
+            <p-button 
+              *ngIf="!session.isCurrent"
+              icon="pi pi-sign-out" 
+              [rounded]="true"
+              [text]="true"
+              severity="danger"
+              size="small"
+              (onClick)="revokeSession(session)"
+              [disabled]="isLoading"
+              pTooltip="Revoke this session"
+              tooltipPosition="top">
+            </p-button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex gap-2 justify-content-end mt-4">
+      <p-button 
+        label="Close" 
+        icon="pi pi-times" 
+        [rounded]="true"
+        [outlined]="true"
+        (onClick)="closeSessionsDialog()"
+        [disabled]="isLoading">
+      </p-button>
+      <p-button 
+        *ngIf="activeSessions.length > 1"
+        label="Revoke All Other Sessions" 
+        icon="pi pi-sign-out" 
+        [rounded]="true"
+        severity="danger"
+        [outlined]="true"
+        (onClick)="revokeAllOtherSessions()"
+        [disabled]="isLoading">
+      </p-button>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Transfer Details Dialog -->
+<p-dialog 
+  [(visible)]="displayTransferDialog" 
+  [modal]="true" 
+  [style]="{width: '90vw', maxWidth: '900px'}"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Transfer Request Details"
+  (onHide)="closeTransferDialog()">
+  
+  <div *ngIf="isLoadingTransferDetails" class="flex justify-content-center align-items-center p-8">
+    <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
+  </div>
+
+  <div *ngIf="!isLoadingTransferDetails && selectedTransfer" class="transfer-details-dialog">
+    <!-- Transfer ID and Status -->
+    <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+      <div class="flex justify-content-between align-items-center">
+        <div>
+          <span class="text-sm text-gray-600">Transfer ID:</span>
+          <span class="ml-2 font-semibold">#{{ selectedTransfer.idTransferRequest }}</span>
+        </div>
+        <p-tag 
+          [value]="selectedTransfer.status || 'UNKNOWN'" 
+          [severity]="getTransferStatusSeverity(selectedTransfer.status || '')">
+        </p-tag>
+      </div>
+    </div>
+
+    <!-- Basic Information -->
+    <div class="mb-4">
+      <h3 class="text-lg font-semibold mb-3 text-gray-800">Basic Information</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.75rem;">
+        <div>
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Commission Account Number</span>
+            <span class="font-medium">{{ selectedTransfer.commissionAccountNumber || 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="p-col-12 p-md-6">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Commission Account Type</span>
+            <span class="font-medium">{{ selectedTransfer.commissionAccountType || 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="p-col-12 p-md-6">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Settlement Account Number</span>
+            <span class="font-medium">{{ selectedTransfer.settlementAccountNumber || 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="p-col-12 p-md-6">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Settlement Account Type</span>
+            <span class="font-medium">{{ selectedTransfer.settlementAccountType || 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transfer Details -->
+    <div class="mb-4">
+      <h3 class="text-lg font-semibold mb-3 text-gray-800">Transfer Details</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.75rem;">
+        <div>
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Transfer Type</span>
+            <span class="font-medium">{{ selectedTransfer.transferType || 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="p-col-12 p-md-6">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Issue Date</span>
+            <span class="font-medium">{{ selectedTransfer.issueDate ? formatDate(selectedTransfer.issueDate) : 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="p-col-12 p-md-6">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Fee Type</span>
+            <span class="font-medium">{{ selectedTransfer.feeType || 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="p-col-12 p-md-6">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Currency</span>
+            <span class="font-medium">{{ selectedTransfer.currency || 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="p-col-12 p-md-6">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Amount</span>
+            <span class="font-medium">{{ selectedTransfer.amount ? formatCurrency(selectedTransfer.amount, selectedTransfer.currency) : 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="p-col-12 p-md-6" *ngIf="selectedTransfer.invoiceNumber">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Invoice Number</span>
+            <span class="font-medium">{{ selectedTransfer.invoiceNumber }}</span>
+          </div>
+        </div>
+        <div class="p-col-12 p-md-6" *ngIf="selectedTransfer.invoiceDate">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Invoice Date</span>
+            <span class="font-medium">{{ formatDate(selectedTransfer.invoiceDate) }}</span>
+          </div>
+        </div>
+        <div style="grid-column: 1 / -1;" *ngIf="selectedTransfer.transferReason">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Transfer Reason</span>
+            <span class="font-medium">{{ selectedTransfer.transferReason }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beneficiary Information -->
+    <div class="mb-4" *ngIf="selectedTransfer.beneficiary">
+      <h3 class="text-lg font-semibold mb-3 text-gray-800">Beneficiary Information</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.75rem;">
+        <div>
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Name</span>
+            <span class="font-medium">{{ selectedTransfer.beneficiary.name || 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="p-col-12 p-md-6">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Country</span>
+            <span class="font-medium">{{ selectedTransfer.beneficiary.country || 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="p-col-12 p-md-6">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Destination Bank</span>
+            <span class="font-medium">{{ selectedTransfer.beneficiary.destinationBank || 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="p-col-12 p-md-6" *ngIf="selectedTransfer.beneficiary.bankAccount">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Bank Account</span>
+            <span class="font-medium">{{ selectedTransfer.beneficiary.bankAccount }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Information -->
+    <div class="mb-4" *ngIf="selectedTransfer.user">
+      <h3 class="text-lg font-semibold mb-3 text-gray-800">Client Information</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.75rem;">
+        <div>
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Name</span>
+            <span class="font-medium">{{ selectedTransfer.user.firstName }} {{ selectedTransfer.user.lastName }}</span>
+          </div>
+        </div>
+        <div class="p-col-12 p-md-6">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Email</span>
+            <span class="font-medium">{{ selectedTransfer.user.email }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Documents -->
+    <div class="mb-4" *ngIf="selectedTransfer.documents && selectedTransfer.documents.length > 0">
+      <h3 class="text-lg font-semibold mb-3 text-gray-800">Documents</h3>
+      <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+        <div *ngFor="let doc of selectedTransfer.documents" class="mb-2">
+          <span class="font-medium">{{ doc.fileName || 'Document' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons for CHARGE_CLIENTELE -->
+    <div class="mt-4 pt-4" style="border-top: 1px solid #e5e7eb;" *ngIf="canPerformAction(selectedTransfer.status || '')">
+      <div class="flex gap-2" style="justify-content: flex-end;">
+        <p-button 
+          label="Validate" 
+          icon="pi pi-check" 
+          [rounded]="true"
+          severity="success"
+          (onClick)="validateTransferFromDialog()"
+          [disabled]="isLoadingTransferDetails">
+        </p-button>
+        <p-button 
+          label="Reject" 
+          icon="pi pi-times" 
+          [rounded]="true"
+          severity="danger"
+          (onClick)="rejectTransferFromDialog()"
+          [disabled]="isLoadingTransferDetails">
+        </p-button>
+        <p-button 
+          label="Request Info" 
+          icon="pi pi-question" 
+          [rounded]="true"
+          severity="warn"
+          (onClick)="requestInfoFromDialog()"
+          [disabled]="isLoadingTransferDetails">
+        </p-button>
+      </div>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Appointment Details Dialog -->
+<p-dialog 
+  [(visible)]="displayAppointmentDialog" 
+  [modal]="true" 
+  [style]="{width: '90vw', maxWidth: '700px'}"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Appointment Details"
+  (onHide)="closeAppointmentDialog()">
+  
+  <div *ngIf="isLoadingAppointmentDetails" class="flex justify-content-center align-items-center p-8">
+    <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
+  </div>
+
+  <div *ngIf="!isLoadingAppointmentDetails && selectedAppointment" class="appointment-details-dialog">
+    <!-- Appointment ID and Status -->
+    <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+      <div class="flex justify-content-between align-items-center">
+        <div>
+          <span class="text-sm text-gray-600">Appointment ID:</span>
+          <span class="ml-2 font-semibold">#{{ selectedAppointment.idAppointment || 'N/A' }}</span>
+        </div>
+        <p-tag 
+          [value]="selectedAppointment.status || 'SCHEDULED'" 
+          [severity]="getAppointmentStatusSeverity(selectedAppointment.status || 'SCHEDULED')">
+        </p-tag>
+      </div>
+    </div>
+
+    <!-- Client Information (for CHARGE_CLIENTELE) -->
+    <div class="mb-4" *ngIf="selectedAppointment.user && isChargeClientele()">
+      <h3 class="text-lg font-semibold mb-3 text-gray-800">Client Information</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.75rem;">
+        <div>
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Name</span>
+            <span class="font-medium">{{ selectedAppointment.user.firstName }} {{ selectedAppointment.user.lastName }}</span>
+          </div>
+        </div>
+        <div>
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Email</span>
+            <span class="font-medium">{{ selectedAppointment.user.email }}</span>
+          </div>
+        </div>
+        <div *ngIf="selectedAppointment.user.phoneNumber">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Phone</span>
+            <span class="font-medium">{{ selectedAppointment.user.phoneNumber }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appointment Details -->
+    <div class="mb-4">
+      <h3 class="text-lg font-semibold mb-3 text-gray-800">Appointment Details</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.75rem;">
+        <div>
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Date & Time</span>
+            <span class="font-medium">{{ formatAppointmentDateTime(selectedAppointment.appointmentDateTime) }}</span>
+          </div>
+        </div>
+        <div>
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Duration</span>
+            <span class="font-medium">{{ selectedAppointment.durationMinutes || 30 }} minutes</span>
+          </div>
+        </div>
+        <div>
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem;">
+            <span class="text-sm text-gray-600 block mb-1">Status</span>
+            <p-tag 
+              [value]="selectedAppointment.status || 'SCHEDULED'" 
+              [severity]="getAppointmentStatusSeverity(selectedAppointment.status || 'SCHEDULED')">
+            </p-tag>
+          </div>
+        </div>
+        <div *ngIf="selectedAppointment.notes">
+          <div class="p-3" style="background: #f9fafb; border-radius: 0.5rem; grid-column: 1 / -1;">
+            <span class="text-sm text-gray-600 block mb-1">Notes / Meeting Type</span>
+            <span class="font-medium">{{ selectedAppointment.notes }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons for CHARGE_CLIENTELE -->
+    <div class="mt-4 pt-4" style="border-top: 1px solid #e5e7eb;" *ngIf="canManageAppointment(selectedAppointment.status || 'SCHEDULED')">
+      <div class="flex gap-2" style="justify-content: flex-end;">
+        <p-button 
+          label="Confirm" 
+          icon="pi pi-check" 
+          [rounded]="true"
+          severity="success"
+          (onClick)="confirmAppointmentFromDialog()"
+          [disabled]="isLoadingAppointmentDetails">
+        </p-button>
+        <p-button 
+          label="Cancel" 
+          icon="pi pi-times" 
+          [rounded]="true"
+          severity="danger"
+          (onClick)="cancelAppointmentFromDialog()"
+          [disabled]="isLoadingAppointmentDetails">
+        </p-button>
+        <p-button 
+          *ngIf="selectedAppointment.status === 'CONFIRMED' || selectedAppointment.status === 'SCHEDULED'"
+          label="Mark as Completed" 
+          icon="pi pi-check-circle" 
+          [rounded]="true"
+          severity="info"
+          (onClick)="completeAppointmentFromDialog()"
+          [disabled]="isLoadingAppointmentDetails">
+        </p-button>
+      </div>
+    </div>
+  </div>
+</p-dialog>

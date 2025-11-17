@@ -16,6 +16,7 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { TransferRequest } from '../../models/transfer-request';
 import { User } from '../../models/User';
 import { AuthService } from '../../services/auth.service';
+import { TopbarWidget } from '../home/topbarwidget.component';
 @Component({
   selector: 'app-transfer-request-form',
   standalone: true,
@@ -29,6 +30,7 @@ import { AuthService } from '../../services/auth.service';
     InputTextModule,
     InputNumberModule,
     FileUploadModule,
+    TopbarWidget,
   ],
   templateUrl: './transfer-request-form.component.html',
   styleUrls: ['./transfer-request-form.component.scss'],
@@ -82,7 +84,20 @@ export class TransferRequestFormComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Check if user has permission to create transfers (only CLIENT and ADMINISTRATOR)
+    if (this.authService.isAuthenticated()) {
+      const user = this.authService.getStoredUser();
+      if (user && user.role !== 'CLIENT' && user.role !== 'ADMINISTRATOR') {
+        // CHARGE_CLIENTELE cannot create transfers - redirect to home
+        this.router.navigate(['/home']);
+        return;
+      }
+    }
     this.onTransferTypeChange();
+    // Clear any existing error messages when component initializes
+    this.messageService.clear();
+    // Don't check authentication on init - errors will only be shown when user tries to submit
+    // This prevents showing errors when the page loads
   }
 
   onTransferTypeChange() {
@@ -116,11 +131,41 @@ export class TransferRequestFormComponent implements OnInit {
       return;
     }
 
+    // Check authentication before proceeding
+    if (!this.authService.isAuthenticated()) {
+      this.showError('User not authenticated. Please log in to continue.');
+      this.router.navigate(['/authentication']);
+      return;
+    }
+
+    // Check user role before proceeding
+    const storedUser = this.authService.getStoredUser();
+    if (storedUser && storedUser.role !== 'CLIENT' && storedUser.role !== 'ADMINISTRATOR') {
+      this.showError('Access Denied: Only CLIENT and ADMINISTRATOR can create transfer requests. Your role: ' + storedUser.role);
+      this.router.navigate(['/home']);
+      return;
+    }
+
     this.isSaving = true;
     try {
       const currentUser = await this.getCurrentUser();
       if (!currentUser) {
-        this.showError('User not authenticated');
+        // Check if user was authenticated but fetch failed
+        if (this.authService.isAuthenticated()) {
+          this.showError('Failed to retrieve user information', new Error('Failed to fetch current user'));
+        } else {
+          this.showError('User not authenticated', new Error('Please log in to continue'));
+        }
+        this.router.navigate(['/authentication']);
+        this.isSaving = false;
+        return;
+      }
+
+      // Double-check role from fetched user
+      if (currentUser.role !== 'CLIENT' && currentUser.role !== 'ADMINISTRATOR') {
+        this.showError('Access Denied: Only CLIENT and ADMINISTRATOR can create transfer requests. Your role: ' + currentUser.role);
+        this.router.navigate(['/home']);
+        this.isSaving = false;
         return;
       }
 
@@ -165,8 +210,23 @@ export class TransferRequestFormComponent implements OnInit {
 
       this.showSuccess('Transfer request created successfully');
       this.router.navigate(['/home']);
-    } catch (error) {
-      this.showError('Failed to save transfer request', error);
+    } catch (error: any) {
+      // Handle specific error cases
+      if (error?.status === 403) {
+        const user = this.authService.getStoredUser();
+        if (user?.role === 'CHARGE_CLIENTELE') {
+          this.showError('Access Denied: Only CLIENT and ADMINISTRATOR can create transfer requests. CHARGE_CLIENTELE can only validate/reject existing requests.');
+          this.router.navigate(['/home']);
+        } else {
+          this.showError('Access Denied: You do not have permission to create transfer requests. Only CLIENT and ADMINISTRATOR roles are allowed.');
+        }
+      } else if (error?.message?.includes('Failed to fetch') || error?.message?.includes('NetworkError') || !error?.status) {
+        // Network error or backend not available
+        this.showError('Connection Error: Unable to connect to the server. Please check if the backend is running and try again.');
+        console.error('Network error:', error);
+      } else {
+        this.showError('Failed to save transfer request', error);
+      }
     } finally {
       this.isSaving = false;
     }
@@ -205,11 +265,20 @@ export class TransferRequestFormComponent implements OnInit {
   }
 
   private async getCurrentUser(): Promise<User | null> {
+    // Check if user is authenticated first
+    if (!this.authService.isAuthenticated()) {
+      return null;
+    }
+
     try {
       const user = await lastValueFrom(this.authService.getCurrentUser());
       return user;
-    } catch (error) {
-      this.showError('Failed to retrieve user information', error);
+    } catch (error: any) {
+      // Don't show errors here - they will be handled in saveTransferRequest
+      // Only log for debugging purposes
+      if (error?.status !== 401 && error?.status !== 403) {
+        console.warn('Failed to retrieve user information:', error);
+      }
       return null;
     }
   }

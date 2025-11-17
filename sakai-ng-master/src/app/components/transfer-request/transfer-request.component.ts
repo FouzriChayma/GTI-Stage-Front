@@ -26,6 +26,7 @@ import { lastValueFrom } from "rxjs";
 import { TransferRequest } from "../../models/transfer-request";
 import { User } from "../../models/User";
 import { ProgressSpinnerModule } from "primeng/progressspinner";
+import { AuthService } from "../../services/auth.service";
 
 interface Column {
   field: string;
@@ -137,7 +138,8 @@ export class TransferRequestComponent implements OnInit {
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
     private cdr: ChangeDetectorRef,
-    private http: HttpClient
+    private http: HttpClient,
+    private authService: AuthService
   ) {}
 
   async ngOnInit() {
@@ -722,7 +724,10 @@ export class TransferRequestComponent implements OnInit {
   }
 
   canPerformActions(): boolean {
-    return this.transferRequest?.status === "PENDING" || this.transferRequest?.status === "INFO_REQUESTED";
+    // Only CHARGE_CLIENTELE and ADMINISTRATOR can validate/reject transfer requests
+    const canValidate = this.authService.hasAnyRole('CHARGE_CLIENTELE', 'ADMINISTRATOR');
+    const isPendingOrInfoRequested = this.transferRequest?.status === "PENDING" || this.transferRequest?.status === "INFO_REQUESTED";
+    return canValidate && isPendingOrInfoRequested;
   }
 
   getSeverity(status: string) {

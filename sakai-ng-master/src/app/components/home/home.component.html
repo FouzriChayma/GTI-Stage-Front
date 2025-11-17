@@ -17,21 +17,71 @@
           Transform your banking experience with cutting-edge technology. Initiate transfers, schedule appointments, and manage your profile with unparalleled ease and security.
         </p>
         <div class="hero-buttons">
-          <p-button 
-            label="Initiate Transfer" 
-            icon="pi pi-arrow-right" 
-            (onClick)="navigateToTransfer()" 
-            [rounded]="true"
-            styleClass="p-button-primary hero-btn-primary">
-          </p-button>
-          <p-button 
-            label="Schedule Meeting" 
-            icon="pi pi-calendar" 
-            (onClick)="navigateToAppointment()" 
-            [rounded]="true"
-            [outlined]="true"
-            styleClass="hero-btn-secondary">
-          </p-button>
+          <ng-container *ngIf="isAuthenticated; else notAuthenticatedButtons">
+            <!-- Only show transfer button for CLIENT and ADMINISTRATOR -->
+            <p-button 
+              *ngIf="canCreateTransfer"
+              label="Initiate Transfer" 
+              icon="pi pi-arrow-right" 
+              (onClick)="navigateToTransfer()" 
+              [rounded]="true"
+              styleClass="p-button-primary hero-btn-primary">
+            </p-button>
+            <!-- Show buttons for CHARGE_CLIENTELE -->
+            <p-button 
+              *ngIf="isChargeClientele"
+              label="Manage Transfers" 
+              icon="pi pi-check-circle" 
+              (onClick)="navigateToProfile()" 
+              [rounded]="true"
+              styleClass="p-button-primary hero-btn-primary">
+            </p-button>
+            <p-button 
+              *ngIf="!isChargeClientele"
+              label="Schedule Meeting" 
+              icon="pi pi-calendar" 
+              (onClick)="navigateToAppointment()" 
+              [rounded]="true"
+              [outlined]="true"
+              styleClass="hero-btn-secondary">
+            </p-button>
+            <!-- Show appointments button for CHARGE_CLIENTELE -->
+            <p-button 
+              *ngIf="isChargeClientele"
+              label="Manage Appointments" 
+              icon="pi pi-calendar-plus" 
+              (onClick)="navigateToProfile()" 
+              [rounded]="true"
+              [outlined]="true"
+              styleClass="hero-btn-secondary">
+            </p-button>
+            <!-- Show dashboard button only for ADMIN -->
+            <p-button 
+              *ngIf="isAdmin"
+              label="Dashboard" 
+              icon="pi pi-th-large" 
+              (onClick)="navigateToDashboard()" 
+              [rounded]="true"
+              styleClass="p-button-primary hero-btn-primary">
+            </p-button>
+          </ng-container>
+          <ng-template #notAuthenticatedButtons>
+            <p-button 
+              label="Login" 
+              icon="pi pi-sign-in" 
+              (onClick)="navigateToLogin()" 
+              [rounded]="true"
+              styleClass="p-button-primary hero-btn-primary">
+            </p-button>
+            <p-button 
+              label="Sign Up" 
+              icon="pi pi-user-plus" 
+              (onClick)="navigateToRegister()" 
+              [rounded]="true"
+              [outlined]="true"
+              styleClass="hero-btn-secondary">
+            </p-button>
+          </ng-template>
         </div>
       </div>
       <div class="hero-image">
@@ -44,11 +94,11 @@
   <div class="stats-section">
     <div class="stats-container">
       <div class="stat-item">
-        <div class="stat-number">50K+</div>
+        <div class="stat-number">50+</div>
         <span class="stat-label">Active Users</span>
       </div>
       <div class="stat-item">
-        <div class="stat-number">1M+</div>
+        <div class="stat-number">100+</div>
         <span class="stat-label">Transfers</span>
       </div>
       <div class="stat-item">
@@ -94,8 +144,8 @@
           </div>
         </div>
 
-        <!-- Appointment Scheduling Feature -->
-        <div class="feature-card-wrapper">
+        <!-- Appointment Scheduling Feature - Only for CLIENT and ADMINISTRATOR -->
+        <div class="feature-card-wrapper" *ngIf="!isChargeClientele">
           <div class="feature-card-gradient" style="background: linear-gradient(90deg, rgba(145, 226, 237, 0.2), rgba(251, 199, 145, 0.2)), linear-gradient(180deg, rgba(253, 228, 165, 0.2), rgba(172, 180, 223, 0.2))">
             <div class="feature-card-content">
               <div class="feature-icon bg-green-200">
@@ -117,8 +167,8 @@
           </div>
         </div>
 
-        <!-- Transfer Initiation Feature -->
-        <div class="feature-card-wrapper">
+        <!-- Transfer Initiation Feature - Only for CLIENT and ADMINISTRATOR -->
+        <div class="feature-card-wrapper" *ngIf="!isChargeClientele">
           <div class="feature-card-gradient" style="background: linear-gradient(90deg, rgba(145, 226, 237, 0.2), rgba(172, 180, 223, 0.2)), linear-gradient(180deg, rgba(172, 180, 223, 0.2), rgba(246, 158, 188, 0.2))">
             <div class="feature-card-content">
               <div class="feature-icon bg-purple-200">
@@ -126,11 +176,67 @@
               </div>
               <h5 class="feature-title">Transfer Initiation</h5>
               <span class="feature-description">Initiate secure and fast transfers with real-time tracking.</span>
-              <div class="feature-button">
+              <div class="feature-button" *ngIf="canCreateTransfer">
                 <p-button 
                   label="Start Transfer" 
                   icon="pi pi-arrow-right" 
                   (onClick)="navigateToTransfer()" 
+                  [outlined]="true"
+                  [rounded]="true"
+                  size="small">
+                </p-button>
+              </div>
+              <div class="feature-button" *ngIf="isAdmin && isAuthenticated">
+                <p-button 
+                  label="View Dashboard" 
+                  icon="pi pi-th-large" 
+                  (onClick)="navigateToDashboard()" 
+                  [outlined]="true"
+                  [rounded]="true"
+                  size="small">
+                </p-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transfer Management Feature for CHARGE_CLIENTELE -->
+        <div class="feature-card-wrapper" *ngIf="isChargeClientele && isAuthenticated">
+          <div class="feature-card-gradient" style="background: linear-gradient(90deg, rgba(145, 226, 237, 0.2), rgba(251, 199, 145, 0.2)), linear-gradient(180deg, rgba(253, 228, 165, 0.2), rgba(172, 180, 223, 0.2))">
+            <div class="feature-card-content">
+              <div class="feature-icon bg-orange-200">
+                <i class="pi pi-fw pi-check-circle text-orange-700"></i>
+              </div>
+              <h5 class="feature-title">Transfer Management</h5>
+              <span class="feature-description">Validate, reject, or request additional information for pending transfer requests.</span>
+              <div class="feature-button">
+                <p-button 
+                  label="Manage Transfers" 
+                  icon="pi pi-check-circle" 
+                  (onClick)="navigateToProfile()" 
+                  [outlined]="true"
+                  [rounded]="true"
+                  size="small">
+                </p-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Appointment Management Feature for CHARGE_CLIENTELE -->
+        <div class="feature-card-wrapper" *ngIf="isChargeClientele && isAuthenticated">
+          <div class="feature-card-gradient" style="background: linear-gradient(90deg, rgba(172, 180, 223, 0.2), rgba(246, 158, 188, 0.2)), linear-gradient(180deg, rgba(145, 226, 237, 0.2), rgba(251, 199, 145, 0.2))">
+            <div class="feature-card-content">
+              <div class="feature-icon bg-pink-200">
+                <i class="pi pi-fw pi-calendar-plus text-pink-700"></i>
+              </div>
+              <h5 class="feature-title">Appointment Management</h5>
+              <span class="feature-description">Manage and schedule appointments with clients efficiently.</span>
+              <div class="feature-button">
+                <p-button 
+                  label="Manage Appointments" 
+                  icon="pi pi-calendar-plus" 
+                  (onClick)="navigateToProfile()" 
                   [outlined]="true"
                   [rounded]="true"
                   size="small">
